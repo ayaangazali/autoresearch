@@ -7,6 +7,13 @@ cross-paper idea, and update the live dashboard data file. Be BOUNDED and FAST �
 - The dashboard polls that file every 2s. Keep its schema EXACT (see below). Never use HTML — a
   security hook blocks innerHTML and the renderer is DOM-only. Plain text + `**bold**` markers only.
 
+## ⚠️ TIMEOUT-AWARE ORDERING (read first)
+This run is killed at a hard wall (~25 min). The **trending hot panel is the most time-sensitive thing
+on the dashboard**, so do it EARLY and write before the expensive work: do steps 1→2→3, then jump to
+**step 7b (trending)** and **Write the file immediately**, THEN come back and do steps 4→6
+(graph/articles/synthesis) and Write again at the end. That way the hot panel always lands fresh even
+if the slow synthesis step gets cut off mid-run.
+
 ## Steps (do them in order, then STOP)
 1. **Read** `/Users/ayaansmacmini2/.paperhunt/hunt.json`. Note existing `graph.nodes[].id` (arxiv ids),
    `candidates`, `articles`, `synthesis`, and `stats.cycle`.
@@ -36,6 +43,9 @@ cross-paper idea, and update the live dashboard data file. Be BOUNDED and FAST �
 7. Optionally rotate `selected` (the deep-dive) to a different high-vote paper and refresh its
    `insights` + `thesis` — only if cheap; otherwise leave it.
 7b. **Refresh `trending`** (the dashboard's hot panel). Keep it honest — heat = community upvotes + recency.
+   **Get REAL numbers:** WebFetch `https://huggingface.co/papers` for the genuine last-24h upvote leaderboard
+   and `https://huggingface.co/papers/trending` for the week — use those exact titles/upvotes/arxiv ids.
+   Do NOT invent papers or upvote counts. If a fetch fails, keep the previous trending block rather than fabricating.
    - `trending.hero` = the single most talked-about paper in the last ~24h `{title, org, lab, arxiv_id, url, why}`.
      **Prioritize big labs**: if OpenAI, Anthropic, Google/DeepMind, Meta/FAIR, Microsoft, NVIDIA, DeepSeek,
      Alibaba/Qwen, Mistral, Apple, or AI2 authored or headlines a paper, it wins the hero / floats up.

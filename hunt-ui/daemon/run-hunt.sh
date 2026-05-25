@@ -32,7 +32,10 @@ fi
 
 echo "=== paperhunt run $TS (key:$([ -f "$KEYFILE" ] && echo file || echo cc-auth)) ===" >> "$LOGDIR/run.log"
 
-timeout 900 claude -p "$(cat "$HUNT/hunt-prompt.md")" \
+# 1500s (25 min) wall — the old 900s killed every run mid-flight (status=124) before the
+# late steps (trending, synthesis) ran, so the dashboard went stale. Still well under the
+# 3600s launchd StartInterval, so runs never overlap.
+timeout 1500 claude -p "$(cat "$HUNT/hunt-prompt.md")" \
   --model claude-sonnet-4-6 \
   --max-turns 60 \
   --dangerously-skip-permissions \
