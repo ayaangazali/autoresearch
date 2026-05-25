@@ -17,6 +17,7 @@ cp "$REPO_UI/index.html" "$HUNT/index.html"
 
 cp "$SRC/run-hunt.sh"     "$HUNT/run-hunt.sh"
 cp "$SRC/hunt-prompt.md"  "$HUNT/hunt-prompt.md"
+cp "$SRC/serve.py"        "$HUNT/serve.py"
 chmod +x "$HUNT/run-hunt.sh"
 cp "$SRC/com.ayaan.paperhunt.plist" "$PLIST"
 
@@ -24,9 +25,9 @@ cp "$SRC/com.ayaan.paperhunt.plist" "$PLIST"
 launchctl bootout   gui/$(id -u)/com.ayaan.paperhunt 2>/dev/null || true
 launchctl bootstrap gui/$(id -u) "$PLIST"
 
-# Make sure the dashboard server is up (bind all interfaces for LAN/Tailscale viewing).
+# Make sure the dashboard server is up (hardened: all interfaces, only index.html + hunt.json).
 if ! lsof -ti tcp:8732 >/dev/null 2>&1; then
-  ( cd "$HUNT" && nohup python3 -m http.server 8732 --bind 0.0.0.0 >"$HUNT/logs/server.log" 2>&1 & )
+  ( cd "$HUNT" && nohup python3 "$HUNT/serve.py" 8732 >"$HUNT/logs/server.log" 2>&1 & )
 fi
 
 echo "deployed → $HUNT"

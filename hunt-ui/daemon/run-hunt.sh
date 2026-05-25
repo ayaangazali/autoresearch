@@ -22,9 +22,10 @@ fi
 
 cd "$HUNT" || exit 1
 
-# Keep the dashboard reachable from the MacBook (bind all interfaces).
+# Keep the dashboard reachable from the MacBook. Hardened server: binds all interfaces
+# but serves ONLY index.html + hunt.json (not the rest of ~/.paperhunt).
 if ! lsof -ti tcp:8732 >/dev/null 2>&1; then
-  ( cd "$HUNT" && nohup python3 -m http.server 8732 --bind 0.0.0.0 >"$LOGDIR/server.log" 2>&1 & )
+  ( cd "$HUNT" && nohup python3 "$HUNT/serve.py" 8732 >"$LOGDIR/server.log" 2>&1 & )
 fi
 
 # Back up current data so a bad run is recoverable.
