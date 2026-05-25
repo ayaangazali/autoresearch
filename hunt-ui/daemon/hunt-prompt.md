@@ -59,9 +59,10 @@ if the slow synthesis step gets cut off mid-run.
 8. **Update** `stats.scanned` (+~120 per search), `stats.cycle` (+1), `updated` (ISO time, use the
    current date), and PREPEND 4–6 short `log` entries tagged `"cyc<N>"` describing what changed
    (which new papers, dedup result, new edges, the SYN idea). Keep the 🦴 voice in the final log line.
-9. **Write** the file with the Write tool. Then **validate** via Bash:
-   `python3 -c "import json;json.load(open('/Users/ayaansmacmini2/.paperhunt/hunt.json'))"`.
-   If it fails, fix and rewrite. Then STOP — do not do anything else.
+9. **Write** the file with the Write tool — emit STRICTLY VALID JSON (no trailing commas, all
+   keys quoted, every brace/bracket closed). You do NOT have Bash; the launcher validates the
+   JSON after you exit and restores the previous file if it's broken, so just get the Write
+   right and then STOP — do not do anything else.
 
 ## Schema (keep every key; add only, never delete)
 Top level: `status` ("done"), `stage` ("post"), `updated`, `stats{scanned,filtered,selected,cycle}`,
