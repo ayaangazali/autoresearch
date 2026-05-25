@@ -381,6 +381,13 @@
 const STAGES = ["filter","dig","synthesize","post"];
 let lastSig = "";
 
+/* allow only http(s) / relative / mailto hrefs — blocks javascript: and data: URLs that
+   could ride in via hunt.json (which is agent-generated from prompt-injectable web text) */
+function safeUrl(v){
+  const u = String(v).trim();
+  if(/^(https?:)?\/\//i.test(u) || /^(\/|#|\.|mailto:)/i.test(u)) return u;
+  return null;
+}
 /* tiny safe hyperscript — builds real DOM nodes, no innerHTML anywhere */
 function h(tag, props, children){
   const e = document.createElement(tag);
@@ -390,6 +397,7 @@ function h(tag, props, children){
     if(k === "class") e.className = v;
     else if(k === "style") e.setAttribute("style", v);
     else if(k.slice(0,2) === "on" && typeof v === "function") e.addEventListener(k.slice(2), v);
+    else if(k === "href"){ const u = safeUrl(v); if(u) e.setAttribute("href", u); }
     else e.setAttribute(k, v);
   }
   const kids = Array.isArray(children) ? children : (children == null ? [] : [children]);
