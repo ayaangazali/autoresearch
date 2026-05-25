@@ -410,9 +410,9 @@ function h(tag, props, children){
 /* split **bold** markers into text + <strong> nodes (no HTML injection) */
 function rich(str){
   const out = [];
-  String(str).split(/(\*\*[^*]+\*\*)/).forEach(part => {
+  String(str).split(/(\*\*[\s\S]+?\*\*)/).forEach(part => {
     if(!part) return;
-    const m = part.match(/^\*\*([^*]+)\*\*$/);
+    const m = part.match(/^\*\*([\s\S]+?)\*\*$/);
     out.push(m ? h("strong", null, m[1]) : document.createTextNode(part));
   });
   return out;
@@ -558,10 +558,14 @@ function renderGraph(g){
     `· ${g.nodes.length} nodes · ${(g.edges || []).length} links`;
 
   const W = 1000, H = 560, cx = 500, cy = 278, rx = 430, ry = 232;
-  const N = g.nodes.length, pos = {};
-  g.nodes.forEach((n, i) => {
+  // group by cluster so same-color nodes sit adjacent (fewer crossings, easier to read);
+  // when the graph gets dense, pull every other node onto an inner ring so labels stop colliding.
+  const ordered = g.nodes.slice().sort((a, b) => String(a.cluster || "").localeCompare(String(b.cluster || "")));
+  const N = ordered.length, pos = {}, dense = N > 14;
+  ordered.forEach((n, i) => {
     const a = (-Math.PI / 2) + (i / N) * 2 * Math.PI;
-    pos[n.id] = { x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) };
+    const ring = (dense && i % 2) ? 0.76 : 1;
+    pos[n.id] = { x: cx + rx * ring * Math.cos(a), y: cy + ry * ring * Math.sin(a) };
   });
 
   const edges = (g.edges || []).map(e => {
