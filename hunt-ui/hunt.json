@@ -1,0 +1,1213 @@
+{
+  "status": "done",
+  "stage": "post",
+  "updated": "2026-05-25T22:34:09Z",
+  "stats": {
+    "scanned": 2980,
+    "filtered": 6,
+    "selected": 1,
+    "cycle": 8
+  },
+  "candidates": [
+    {
+      "rank": 1,
+      "title": "DAWN: Dependency-Aware Fast Inference for Diffusion LLMs",
+      "authors": "Lizhuo Luo et al.",
+      "lab": "NTU",
+      "votes": 6,
+      "arxiv_id": "2602.06953",
+      "url": "https://arxiv.org/abs/2602.06953",
+      "signal": "high",
+      "selected": true,
+      "tag": "dLLM scheduling"
+    },
+    {
+      "rank": 2,
+      "title": "Fast-dLLM: Training-free Acceleration via KV Cache + Parallel Decoding",
+      "authors": "Chengyue Wu et al.",
+      "lab": "HKU / NVIDIA / MIT",
+      "votes": 46,
+      "arxiv_id": "2505.22618",
+      "url": "https://arxiv.org/abs/2505.22618",
+      "signal": "high",
+      "selected": false,
+      "tag": "dLLM KV cache"
+    },
+    {
+      "rank": 3,
+      "title": "On the Role of Discreteness in Diffusion LLMs",
+      "authors": "Ziqi Jin, … Lidong Bing, Aixin Sun",
+      "lab": "industry/academia",
+      "votes": 18,
+      "arxiv_id": "2512.22630",
+      "url": "https://arxiv.org/abs/2512.22630",
+      "signal": "medium",
+      "selected": false,
+      "tag": "dLLM theory"
+    },
+    {
+      "rank": 4,
+      "title": "LaViDa: A Large Diffusion Language Model for Multimodal Understanding",
+      "authors": "Shufan Li et al.",
+      "lab": "UCLA / Panasonic",
+      "votes": 13,
+      "arxiv_id": "2505.16839",
+      "url": "https://arxiv.org/abs/2505.16839",
+      "signal": "medium",
+      "selected": false,
+      "tag": "diffusion VLM"
+    },
+    {
+      "rank": 5,
+      "title": "T3D: Few-Step Diffusion LLMs via Trajectory Self-Distillation",
+      "authors": "Tunyu Zhang et al.",
+      "lab": "Rutgers",
+      "votes": 8,
+      "arxiv_id": "2602.12262",
+      "url": "https://arxiv.org/abs/2602.12262",
+      "signal": "medium",
+      "selected": false,
+      "tag": "few-step dLLM"
+    },
+    {
+      "rank": 6,
+      "title": "DSB: Dynamic Sliding Block Scheduling for Diffusion LLMs",
+      "authors": "Lizhuo Luo et al.",
+      "lab": "NTU",
+      "votes": 4,
+      "arxiv_id": "2602.05992",
+      "url": "https://arxiv.org/abs/2602.05992",
+      "signal": "low",
+      "selected": false,
+      "tag": "block schedule"
+    }
+  ],
+  "selected": {
+    "title": "DAWN: Dependency-Aware Fast Inference for Diffusion LLMs",
+    "authors": "Lizhuo Luo, Zhuoran Shi, Jiajun Luo, Zhi Wang, Shen Ren, Wenya Wang, Tianwei Zhang",
+    "lab": "Nanyang Technological University",
+    "arxiv_id": "2602.06953",
+    "url": "https://arxiv.org/abs/2602.06953",
+    "date": "2026-02-06",
+    "insights": [
+      "Diffusion LLMs sell **parallel decoding** as the headline advantage — but real systems decode conservatively to protect quality. DAWN shows the wasted headroom: **1.80–8.06× speedup** with negligible quality loss, **training-free**.",
+      "The root bug in naive parallel decoding: it assumes positions are **independent**. They aren't — tokens are semantically coupled, so committing two strongly-coupled *uncertain* positions in the same step produces garbage.",
+      "DAWN's fix is a **dependency graph** over masked positions: only co-unmask positions that become **reliable** given already-fixed tokens; defer the strongly-coupled-uncertain ones. Scheduling, not modeling.",
+      "It's a **pure inference-time** drop-in — no retrain, no new weights — so it stacks onto LLaDA/Dream-style models immediately. The speedup is a scheduler, not an architecture.",
+      "The 1.8×→8× range is **data-dependent**: loose dependency structure → near-8×; dense coupling → collapses toward serial. An honest variable, not a flat marketing number.",
+      "This reframes the dLLM pitch: the win isn't the diffusion *objective*, it's **knowing which tokens you can commit early** — a confidence/dependency problem autoregressive speculative decoding is also chasing."
+    ],
+    "thesis": {
+      "main": "Diffusion LLMs' 'parallel decoding' edge has been mostly theoretical. The real unlock isn't the diffusion objective — it's scheduling which tokens to commit when. That's a dependency problem, and whoever models it best wins, AR or diffusion.",
+      "secondary": "The diffusion-vs-autoregressive war is a distraction. Both camps are converging on the same primitive — speculatively committing tokens you're confident about — so the objective is becoming a footnote and the scheduler is becoming the product.",
+      "contrarian": "'Up to 8×' quietly admits the floor is ~1.8×. The big speedups only appear on loosely-coupled text; on dense reasoning where every token constrains the next, dependency-aware decoding collapses toward serial. dLLMs may be fastest exactly where latency matters least."
+    }
+  },
+  "posts": {
+    "thread": [
+      "Diffusion LLMs have been promising 'parallel decoding go brrr' for two years.\n\nReality: everyone decodes conservatively because parallel = garbage if you're not careful.\n\nNew paper (DAWN) just unlocked 1.8–8x with ZERO retraining. The trick is almost embarrassingly simple. 🧵",
+      "The bug in naive parallel decoding: it treats every position as independent.\n\nThey're not. 'New York ___' — the blank is coupled to the tokens around it. Fill two coupled UNCERTAIN slots at once → you get nonsense.",
+      "DAWN builds a dependency graph and only commits positions that are reliable GIVEN what's already locked in.\n\nIt's not a new model. It's not a new objective. It's a scheduler. Pure inference-time.",
+      "The honest part I respect: the speedup is 1.8x–8x, and they tell you why it's a range.\n\nLoose dependencies → 8x. Dense coupling → collapses toward serial. Speed is data-dependent, not a flat banner number.",
+      "My take (opinion): the diffusion-vs-autoregressive holy war is a distraction.\n\nBoth sides are converging on the same primitive — commit the tokens you're confident about, defer the rest. The objective is becoming a footnote. The scheduler is the product.",
+      "Contrarian 🚩: 8x only shows on loosely-coupled text. On dense multi-step reasoning — where every token constrains the next — dependency-aware decoding falls back toward serial.\n\nTranslation: dLLMs may be fastest exactly where you needed speed least."
+    ],
+    "standalone": [
+      "Unpopular opinion: 'diffusion LLM' is the wrong unit of analysis. The thing that actually makes them fast (DAWN: 1.8–8x, training-free) is a token-dependency scheduler — and AR speculative decoding is reinventing the same idea from the other direction.",
+      "DAWN gets 1.8–8x out of diffusion LLMs with no retraining. The lesson nobody wants: most of the 'efficiency research' headroom is in WHEN you commit tokens, not in the architecture you commit them with.",
+      "The quiet tell in every dLLM speedup paper: the big multiplier only lands on easy, loosely-coupled text. Show me the speedup on a hard reasoning trace and I'll start believing diffusion beats autoregressive."
+    ]
+  },
+  "articles": [
+    {
+      "rank": 1,
+      "title": "A-RAG: Scaling Agentic RAG via Hierarchical Retrieval Interfaces",
+      "lab": "multi-institution",
+      "votes": 274,
+      "arxiv_id": "2602.03442",
+      "url": "https://hf.co/papers/2602.03442",
+      "tag": "retrieval / RAG",
+      "verdict": "Retrieval is finally a decision the model makes, not a pipeline step it inherits. A-RAG hands the model three granularity knobs — and frontier LLMs immediately reward that trust.",
+      "words": 299,
+      "body": "RAG has been stuck in a design trap: retrieval was something that happened *to* the model, not *by* it. A vector search ran, top-k chunks landed in the context, and the model was told to answer. It had no say in whether it retrieved enough, at the right granularity, or even the right *kind* of search. A-RAG breaks this by exposing **three retrieval tools directly to the model**: keyword search, semantic search, and chunk-read. The model decides which to call, when, and at what granularity. The result: consistent outperformance on open-domain QA with comparable or *fewer* retrieved tokens.\n\nMy take: the real move here is recognizing that **retrieval is a reasoning problem**, not a preprocessing step. A frontier LLM has been trained on millions of reasoning chains; it has strong intuitions about when evidence is insufficient and what kind would help. Locking it out of the retrieval decision is like hiring a detective and forcing them to use only the evidence you picked in advance. A-RAG just hands the detective the filing cabinet keys.\n\nThis connects directly to the test-time compute thesis (#14 in this run). Hard queries benefit from more retrieval calls at finer granularity — and A-RAG adaptively routes compute there. It is **difficulty-adaptive allocation applied to the retrieval stage** — the same principle as best-of-N decoding, except the search space is the document corpus instead of the output token space.\n\nThe contrarian worry: free rein over retrieval creates new failure modes. The model can over-retrieve (burning context budget), under-retrieve (premature confidence), or loop (calling chunk-read indefinitely on the same passage). Without a hard budget and circuit breaker, 'let the model decide' becomes 'let the model spiral.' The infrastructure surrounding A-RAG — budget constraints, termination heuristics, tool call limits — is as load-bearing as the architecture itself. 274 upvotes bought the idea; the remaining engineering determines whether it ships."
+    },
+    {
+      "rank": 2,
+      "title": "Thinking with Video: Video Generation as a Multimodal Reasoning Paradigm",
+      "lab": "Fudan / multimodal consortium",
+      "votes": 242,
+      "arxiv_id": "2511.04570",
+      "url": "https://hf.co/papers/2511.04570",
+      "tag": "multimodal reasoning",
+      "verdict": "Chain-of-thought was text. Then images. Now video — and reasoning that depends on motion, time, and physics finally has a native substrate.",
+      "words": 316,
+      "body": "Reasoning has had two substrates: text (chain-of-thought) and, lately, images (think-with-images). Both are static. 'Thinking with Video' makes the audacious claim that the next substrate is **generated video** — that a model can reason by *rolling forward a visual simulation* and reading the answer off the frames. They back it with a Video Thinking Benchmark and show gains on both vision-centric tasks (Eyeballing Puzzles) and, strikingly, text-centric ones (GSM8K, MMMU).\n\nWhy I think 242 upvotes is correct and not hype: text and images can't natively represent **time, motion, and causality.** A geometry construction, a physics intuition, a 'what happens next' question — these live in dynamics, and a video model's entire job is to predict dynamics. If you can pose a problem as 'simulate it and look,' you've offloaded reasoning onto a model trained to predict the future of pixels. That's a genuinely different computational primitive than next-token prediction over a chain of text.\n\nMy take: this is the conceptual bridge between the world-model wave (see SANA-WM at #10) and the reasoning wave (#5). World models were framed as content generators; this reframes them as **reasoning engines.** The implication is large — if 'thinking with video' generalizes, every efficiency win in video generation (linear attention, distillation, NVFP4 quantization) becomes a reasoning win too. The two research tracks merge into one.\n\nThe contrarian flag: there's a real risk this is expensive theater — generating a whole video to answer a question a CoT solves in 50 tokens is absurd economics. The honest scope is narrow: problems whose answer is *intrinsically* dynamical. For those, it's a breakthrough; for everything else, it's a gorgeous, glacial detour. The benchmark's real job is to draw that line precisely — and the field will waste a lot of FLOPs before it respects it."
+    },
+    {
+      "rank": 3,
+      "title": "DelTA: Discriminative Token Credit Assignment for RLVR",
+      "lab": "Renmin University / Ant International",
+      "votes": 198,
+      "arxiv_id": "2605.21467",
+      "url": "https://hf.co/papers/2605.21467",
+      "tag": "RL / reasoning · new this cycle",
+      "verdict": "RLVR's blunt outcome-level reward is the bug, not the feature. DelTA puts the scalpel to the token level and finally gives each reasoning step the credit — or blame — it deserves.",
+      "words": 308,
+      "body": "Every RLVR training run makes a quiet mistake. When the model produces a correct answer, every token in the reasoning chain gets the same reward signal — the binary outcome of whether the final answer was right. The signal is sparse, noisy, and indiscriminate. A redundant preamble token and the critical pivot that unlocked the solution receive equal credit. A wrong detour that appeared in a successful trajectory gets rewarded alongside the step that saved it. DelTA's diagnosis is clean: **this blunt credit assignment is why RLVR training looks like sharpening rather than learning.**\n\nThe mechanism: DelTA computes a discriminative credit score per token by asking whether that token's hidden representation is predictive of the final outcome. Tokens appearing reliably in successful chains and absent in failed ones score high; tokens that are ambiguous relative to the success/failure boundary score low. The RL gradient is then weighted by these scores, not distributed uniformly across the trajectory.\n\nMy take: this is the paper that gives the RLVR-ceiling result (#5 in this run) a mechanistic cause. Pass@k didn't improve with vanilla RLVR because the **wrong tokens were being trained** — the causally responsible ones and the coincidentally present ones were indistinguishable at training time. DelTA's discriminative signal changes that. If the tokens that actually caused success receive higher gradient weight, the model may learn *which reasoning patterns work*, not just *which trajectories were correct* — and that distinction is the gap between sharpening and genuine capability expansion.\n\nThe contrarian question is sharp: can you distinguish 'this token contributed' from 'this token appeared in a winning trajectory'? DelTA's credit score is a proxy, not a causal attribution. In long chains where the critical step is surrounded by coherent-looking preamble, the score may still blur. And in a field saturated with RLVR variants, a credit-assignment trick that improves benchmarks without expanding pass@k is just more sharpening in a new costume. The honest test is the one the RLVR-ceiling paper established: does DelTA produce models where pass@k actually *expands* as k grows? That's the only number that settles it."
+    },
+    {
+      "rank": 4,
+      "title": "SenseNova-U1: Unifying Understanding and Generation (NEO-unify)",
+      "lab": "SenseTime",
+      "votes": 186,
+      "arxiv_id": "2605.12500",
+      "url": "https://hf.co/papers/2605.12500",
+      "tag": "unified multimodal",
+      "verdict": "Understanding and generation stop being two models bolted together. NEO-unify treats 'see' and 'draw' as one process — and the field is voting hard for it.",
+      "words": 318,
+      "body": "For years, multimodal systems were a marriage of convenience: a vision encoder for understanding, a separate diffusion head for generation, stapled to an LLM. SenseNova-U1's NEO-unify architecture rejects the staple. It treats **understanding and generation as one integrated process** — perception, knowledge reasoning, agentic decision-making, any-to-image synthesis, even vision-language-action and world modeling — inside a single dense+MoE paradigm. The community response (186 upvotes) tells you this landed as a flagship, not a footnote.\n\nMy take: unification is the right *direction* and an over-promised *destination.* The intellectual case is strong — a model that generates images should understand them better, because generation forces a causal, compositional grasp that classification can dodge. And the reverse: understanding should sharpen generation. When it works, the two capabilities bootstrap each other. That's the dream NEO-unify is chasing.\n\nBut here's the tension, and it's why I rank the benchmark (UniG2U-Bench, #8) right alongside it: the evidence so far says unified models still *lag specialized vision-language models* on pure understanding. Unification buys breadth and the bootstrapping story; it has not yet bought the top of every leaderboard. So the honest read on SenseNova-U1 is 'impressive generalist, not yet the specialist-killer.'\n\nThe contrarian angle: the bitter-lesson crowd will say unification always wins eventually — one big model, one objective, scale solves the rest. They're probably right on a long enough horizon. The open question is *timing.* Until a unified model beats the specialists on their home turf, 'unified' is an architecture bet on the future, sold with today's slightly-worse numbers. 186 upvotes says the field believes the bet — and belief is a leading indicator. I'd still watch the understanding gap actually close before writing the specialists' obituary."
+    },
+    {
+      "rank": 5,
+      "title": "Does RL Really Incentivize Reasoning Beyond the Base Model?",
+      "lab": "Tsinghua (THU)",
+      "votes": 141,
+      "arxiv_id": "2504.13837",
+      "url": "https://hf.co/papers/2504.13837",
+      "tag": "reasoning / RL · cycle-2 deep-dive",
+      "verdict": "RL didn't teach the model to reason. It taught it to stop guessing wrong on the first try.",
+      "words": 312,
+      "body": "The headline that launched the reasoning-model era was simple: pour reinforcement learning with verifiable rewards onto a base model and watch it 'learn to reason.' This paper calls the bluff with one brutal instrument — **pass@k**. At k=1, RL-tuned models crush their base versions. But crank k up — let the base model sample 64, 128, 256 times — and the gap closes, then *inverts*. The base model eventually solves problems the RL model can't, across math, code, and visual reasoning, across multiple model families.\n\nMy read: RLVR is not a capability transplant. It is **distribution sharpening**. The reasoning paths the RL model 'discovers' were already living in the base model's sampling distribution; RL just reweights probability mass toward the ones that get rewarded. You trade diversity for first-shot reliability. That is enormously useful — and it is not new reasoning.\n\nThe tell is the contrast with distillation. When the authors distill from a genuinely stronger teacher, the reasoning boundary *expands* — pass@k improves at every k. RL alone never does this. So the boundary is set upstream, in pretraining and distillation, and RL operates strictly inside it.\n\nWhy this matters: the field has reported pass@1 wins and narrated them as emergent reasoning. If your only metric is pass@1, you literally cannot distinguish 'the model got smarter' from 'the model got luckier on the first draw.' That is a measurement crisis dressed as a capability story.\n\nThe uncomfortable corollary: scaling RL compute hits a ceiling that only more pretraining or better teachers can raise. The 141 upvotes and 21-comment brawl on HF aren't about the result — they're about the implication. If RL only sharpens, the reasoning frontier is bought in pretraining, and we've been crediting the wrong stage of the pipeline for the magic."
+    },
+    {
+      "rank": 6,
+      "title": "Gated DeltaNet-2: Decoupling Erase and Write in Linear Attention",
+      "lab": "NVIDIA",
+      "votes": 136,
+      "arxiv_id": "2605.22791",
+      "url": "https://hf.co/papers/2605.22791",
+      "tag": "architecture · new this cycle",
+      "verdict": "Linear attention has been controlled by one lever where it needs two. Separating erase from write is the architectural correction the sub-quadratic stack was waiting for.",
+      "words": 322,
+      "body": "Linear attention compresses the entire sequence history into a fixed-size recurrent state. The hard problem — harder than forgetting — is **how to edit that state without scrambling existing associations.** The Delta rule patches this: before writing a new value, subtract the current read of the key, zeroing what the state holds for that association. Gated DeltaNet added a scalar forget gate. KDA (Kimi Delta Attention) added channel-wise decay. But both share a latent coupling: **one scalar gate controls two fundamentally different operations — how aggressively to erase old content, and how aggressively to commit new content.** Erasing and writing are not the same, and conflating them means you cannot optimize one without constraining the other.\n\nGated DeltaNet-2 separates them. A channel-wise erase gate controls selective removal of stale associations independently; a channel-wise write gate controls commitment of new information independently. GDN-2 inherits GDN's adaptive forgetting and KDA's channel-wise decay — it generalizes both without sacrificing their contributions.\n\nMy take: this is one of those architectural corrections that looks obvious in retrospect. The relevant comparison is MHLA (#15 in this run), which made linear attention more expressive by adding multi-head structure along the token dimension. MHLA and GDN-2 attack **different failure modes** of linear attention: MHLA restores representational diversity; GDN-2 restores update precision. They are orthogonal, and the graph edge between them isn't metaphorical. A model combining MHLA-style token-dimension heads with GDN-2-style decoupled state editing could simultaneously recover softmax's expressivity and precision without paying quadratic cost.\n\nSANA-WM (#10 in this run) already deploys hybrid Gated DeltaNet for long-form video generation; GDN-2 is a drop-in upgrade to that core component. Every downstream efficiency win that relied on DeltaNet's fast recurrence inherits GDN-2's precision improvements automatically.\n\nThe contrarian note: decoupling adds parameters and a two-gate compute overhead. Whether the wall-clock cost is paid back in fewer training steps — the linear attention pitch — or whether this is quality-at-cost-of-speed depends on implementation. The NVFP4 serving story that made SANA-WM possible requires this overhead to be marginal. That's the number the field needs before GDN-2 displaces its predecessor in production."
+    },
+    {
+      "rank": 7,
+      "title": "SkillOpt: Executive Strategy for Self-Evolving Agent Skills",
+      "lab": "Microsoft Research",
+      "votes": 106,
+      "arxiv_id": "2605.23904",
+      "url": "https://hf.co/papers/2605.23904",
+      "tag": "agents / skills · new this cycle",
+      "verdict": "Skills stop being hand-crafted prose and start being trained artifacts — SkillOpt is the first optimizer that treats the skill document the way gradient descent treats weights.",
+      "words": 314,
+      "body": "Agent skills have been stuck in a craft trap. You hand-write them, or you one-shot generate them from a prompt, or you run some loosely controlled self-revision loop — and none of these behaves like a real optimizer. There is no validation gate, no learning-rate budget, no memory of failed attempts. The skill document improves by luck, not discipline. SkillOpt is the first paper to treat this seriously: the skill is **external state of a frozen agent**, and it should be trained with the same rigor we bring to model weights.\n\nThe mechanism is elegant. A separate optimizer model sees scored rollouts and proposes bounded **add/delete/replace edits** to the skill document. An edit is accepted only when it strictly improves a held-out validation score — the text-space equivalent of a validation loss check. A textual learning-rate budget, a rejected-edit buffer, and epoch-wise meta-updates stabilize the process. Zero extra model calls at deployment: the optimized skill is just a document the agent reads.\n\nThe numbers are hard to dismiss. Across six benchmarks, seven models, and three execution environments (direct chat, Codex, Claude Code), SkillOpt is best or tied on all 52 evaluated cells. On GPT-5.5 it lifts no-skill accuracy by **+23.5 points** in direct chat, **+24.8** inside Codex, **+19.1** inside Claude Code. Skills also transfer across model scales and execution environments without further optimization.\n\nThe graph connection I find most compelling: read SkillOpt against SlopCodeBench (#17). SlopCodeBench showed agents erode structure because pass-rate reward gives no gradient for maintainability. SkillOpt's validation gate is precisely that missing signal — encode structural constraints in the skill doc, use erosion metrics as the held-out score, and the optimizer disciplines what reward cannot.\n\nThe contrarian question: what happens when the optimizer model hallucinates confident-sounding edits that look valid but generalize poorly? The system assumes the optimizer correctly identifies which edits improve validation. If it fails, the validation gate is a false floor. Skill documents are also new attack surfaces — a poisoned skill doc is worse than a jailbreak, because it is trusted unconditionally by the agent and persists across every subsequent task."
+    },
+    {
+      "rank": 8,
+      "title": "UniG2U-Bench: Do Unified Models Advance Multimodal Understanding?",
+      "lab": "eval consortium",
+      "votes": 87,
+      "arxiv_id": "2603.03241",
+      "url": "https://hf.co/papers/2603.03241",
+      "tag": "eval / unified",
+      "verdict": "The cold shower for unified models: generating an image then reasoning about it helps on some tasks — and still trails the specialists overall.",
+      "words": 314,
+      "body": "Every unified multimodal paper claims generation and understanding reinforce each other. UniG2U-Bench asks the unglamorous question: **does it actually?** It evaluates 'generation-to-understanding' (G2U) — can a model that produces intermediate images then *reason better* over them? — across spatial intelligence, visual illusions, and multi-round reasoning, via a Generate-then-Answer inference protocol.\n\nThe verdict is refreshingly mixed and therefore credible: specific subtasks (especially spatial and multi-step reasoning) **do** benefit from generating intermediate visual states, but **overall performance still lags specialized vision-language models.** No triumphalism. Just a map of where the unification thesis pays off and where it's still a tax.\n\nMy take: this is the most important *kind* of paper in any hype cycle — the one that operationalizes a vague claim into a measurable one. 'Unified models understand better because they generate' was an article of faith; UniG2U-Bench turns it into a number, with subtask granularity. That's how a field stops arguing from architecture diagrams and starts arguing from evidence. Pair it with SenseNova-U1 (#4) and you get the full picture: the flagship shows what unification *can* build; the benchmark shows what it *currently* delivers.\n\nThe contrarian note: 'Generate-then-Answer' is itself a design choice that may under- or over-sell unification — maybe the real win shows up only when generation is *implicit*, woven into the reasoning rather than a discrete image you then read. Benchmarks shape the thing they measure, and a G2U framing privileges visible intermediate images. But naming the protocol is what lets the next paper improve it. The signal I take away: intermediate visual reasoning is real but localized — deploy it where space and steps matter, not as a blanket upgrade you bolt onto every multimodal task and hope."
+    },
+    {
+      "rank": 9,
+      "title": "Lens: Rethinking Training Efficiency for Foundational T2I Models",
+      "lab": "Microsoft",
+      "votes": 85,
+      "arxiv_id": "2605.21573",
+      "url": "https://hf.co/papers/2605.21573",
+      "tag": "training efficiency · new this cycle",
+      "verdict": "Dense captions and multi-resolution batches cut T2I training to a fifth of normal cost — the compute-efficiency thesis for generation finally ships at scale.",
+      "words": 312,
+      "body": "T2I training has been running the same recipe for three years: a large diffusion backbone, a large dataset, and a large GPU budget. Lens asks what happens if you maximally compress the *information content* of each training step instead of scaling the step count. The result: a **3.8B-parameter model** that beats models larger than 6B parameters across benchmarks, trained at **only 19.3% of the compute** used by Z-Image.\n\nThe efficiency comes from two places. First, **data density**: the Lens-800M dataset uses GPT-4.1-generated captions averaging ~109 words per image — dense, structured descriptions that pack semantic supervision into every sample instead of leaking it through short tags. Multi-resolution, multi-aspect-ratio batching means each optimization step covers more of the visual distribution. Second, **architectural convergence speed**: a semantic VAE provides better latent representations, and a strong language encoder accelerates optimization while enabling multilingual generalization from English-only training — zero deployment overhead added.\n\nPost-training is equally deliberate: RL with taxonomy-driven prompts and structured reward rubrics (Lens-RL-8K) suppresses visual artifacts, a reasoner module aligns user requests, and distillation to 4-step inference produces Lens-Turbo — a **1024² image in 0.84 seconds** on a single H100.\n\nMy take: this is the **compute-efficiency thesis applied to generation pretraining.** Every ingredient was in the literature — dense captions, multi-res batching, semantic VAEs. Lens shows what happens when you build a flagship *around* those signals rather than ablating them in a footnote. The 19.3% compute figure is the headline: labs without a 100K H100 cluster can now compete on T2I quality.\n\nThe contrarian angle: Lens is a specialist that beats generalists at their own game on the exact day the field is betting everything on unification. SenseNova-U1 (#4) argues the future is one model that sees, draws, and reasons. Lens just proved the efficient specialist is still alive — and 81 GitHub stars in a week says practitioners do not care about the generalist thesis when they need a model that ships in 0.84 seconds today."
+    },
+    {
+      "rank": 10,
+      "title": "SANA-WM: Efficient Minute-Scale World Modeling",
+      "lab": "NVIDIA / MIT",
+      "votes": 81,
+      "arxiv_id": "2605.15178",
+      "url": "https://hf.co/papers/2605.15178",
+      "tag": "world models",
+      "verdict": "The world-model moat was compute. SANA-WM just opened the floodgate — a 60-second 720p world on a single gaming GPU.",
+      "words": 314,
+      "body": "World models — systems that generate explorable, camera-controllable video — have been the private playground of labs with industrial GPU fleets. SANA-WM drags them onto a desk. **2.6B parameters. 720p. A full sixty seconds of coherent, navigable video.** And the numbers underneath are the real story: trained on only ~213K public clips, in 15 days on 64 H100s, and — the line that matters — the distilled variant denoises a 60-second 720p clip in **34 seconds on a single RTX 5090** with NVFP4 quantization.\n\nThe architectural move is the one I keep betting on: **hybrid linear attention.** Frame-wise Gated DeltaNet handles the long temporal context cheaply, and softmax attention is reserved for where it actually earns its quadratic cost. That's how you get one minute of frames without the memory bill exploding. Pair it with dual-branch 6-DoF camera control and a two-stage refiner, and you get action-following that beats prior open-source baselines at **36× the throughput.**\n\nMy take: this is the inflection where world models stop being a demo and start being **infrastructure**. The moment a hobbyist can run a minute-long controllable world on a 5090, you get the same Cambrian explosion that hit image generation after Stable Diffusion — robotics simulators, game engines, synthetic driving data, and agent training environments, all decoupled from frontier-lab budgets.\n\nThe contrarian worry: 'comparable visual quality' at 36× throughput is the kind of claim that hides where quality actually leaks — fast motion, occlusion, long-horizon drift. Those are exactly the failure modes a benchmark average smooths over. But efficiency is the variable that compounds. A slightly-worse model that's 36× cheaper wins the ecosystem, every single time. The frontier labs still hold the quality crown; SANA-WM just quietly walked off with the distribution channel — and distribution decides which research shapes the world."
+    },
+    {
+      "rank": 11,
+      "title": "MMaDA-Parallel: Multimodal Diffusion LMs for Thinking-Aware Editing",
+      "lab": "diffusion consortium",
+      "votes": 71,
+      "arxiv_id": "2511.09611",
+      "url": "https://hf.co/papers/2511.09611",
+      "tag": "multimodal / diffusion",
+      "verdict": "Think-then-draw leaks errors at the seam. Doing both at once isn't a speed trick — it's how you keep the picture honest to the plan.",
+      "words": 318,
+      "body": "Most 'thinking-aware' image models reason in text first, then hand the plan to a generator. MMaDA-Parallel's core insight is that this **sequential handoff is where the model lies to itself**: the reasoning trace and the pixels are produced in separate passes, so errors in the text stage propagate, uncorrected, into the image — and vice versa. The authors even build a benchmark, ParaBench, to measure exactly this cross-modal drift.\n\nThe fix is a **parallel multimodal diffusion** framework where text and image tokens denoise *together*, with continuous bidirectional interaction across the whole trajectory. Add Parallel Reinforcement Learning (ParaRL) with semantic rewards to align the two streams, and the output stays faithful to the plan instead of merely adjacent to it.\n\nHere's why I think this matters more than the upvote count suggests. The industry framed diffusion language models around **speed** — parallel decoding, fewer steps, throughput. That framing undersells the real edge. Diffusion's structural advantage is **bidirectional, joint refinement**: every token, text or pixel, can condition on every other, at every denoising step. Autoregression physically cannot do this — it commits left-to-right and never looks back. For tasks where modalities must stay mutually consistent — editing that respects an instruction, generation that obeys a reasoning chain — that isn't a nice-to-have, it's the whole game.\n\nMy contrarian flag: 'thinking-aware editing' is a seductive phrase that can paper over whether the reasoning is doing causal work or just decorating the output. The honest test is ablation — does removing the parallel reasoning measurably degrade fidelity, or just the vibes? But directionally, this is the most convincing argument I've seen that diffusion LMs aren't just a faster path to the same place. They're a *different* place — and joint cross-modal consistency, not raw speed, is the destination that will justify abandoning autoregression for whole classes of generation."
+    },
+    {
+      "rank": 12,
+      "title": "HY-Embodied-0.5: Embodied Foundation Models for Real-World Agents",
+      "lab": "Huawei Noah's Ark",
+      "votes": 68,
+      "arxiv_id": "2604.07430",
+      "url": "https://hf.co/papers/2604.07430",
+      "tag": "robotics / embodied",
+      "verdict": "Open embodied AI is now a thing. HY-Embodied-0.5 is the first serious open VLA, and its arrival does to robotics research what Llama did to LLM research.",
+      "words": 296,
+      "body": "Embodied AI has been the field's most-promised, least-delivered frontier. VLA models have shown benchmark capability for years; most fail to transfer beyond their training distribution, and the ones that work are closed systems. HY-Embodied-0.5 steps into that gap as Huawei Noah's Ark's open **embodied foundation model** — a Vision-Language-Action architecture trained end-to-end for real-world robot control, evaluated on physical hardware, not just simulation. The '0.5' versioning signals this is a platform, not a one-off demo.\n\nMy take: the critical word here is **open.** The VLA space has been dominated by closed systems — RT-2, OpenVLA, Pi-0 — where weights and training recipes stay proprietary. The moment a capable embodied model goes open, the field gets a shared substrate. The same dynamic that drove LLM progress — every lab fine-tuning Llama instead of training from scratch — now reaches robotics. HY-Embodied-0.5 is betting that Huawei can be the Llama of the robot space.\n\nThe direct graph connection is to SANA-WM (#10 in this run): efficient world modeling is now **cheap enough to serve as robot training infrastructure.** If a minute of physically coherent video costs 34 seconds on a gaming GPU, you can fill HY-Embodied's training data gaps with synthetic demonstrations at a fraction of real-world collection costs — which currently run at thousands of dollars per hour of robot time. The two papers form a closed loop: world model generates data, VLA consumes it.\n\nThe contrarian: open weights for embodied AI carries a different risk profile than open weights for language. A robot model couples digital reasoning to physical actuation — the harm surface is literally physical. Releasing open VLA weights under current geopolitical conditions is either a confident safety statement or a bet that consequences lag capability. The capability argument is real. The risk model deserves the same precision."
+    },
+    {
+      "rank": 13,
+      "title": "ABC-Bench: Benchmarking Agentic Backend Coding",
+      "lab": "Fudan / agents group",
+      "votes": 67,
+      "arxiv_id": "2601.11077",
+      "url": "https://hf.co/papers/2601.11077",
+      "tag": "agents / coding",
+      "verdict": "SWE-bench measured the patch. Real backend work is the whole lifecycle — repo, container, deploy, API test. The bar just moved to ops.",
+      "words": 316,
+      "body": "Coding benchmarks have a dirty secret: they mostly measure **the diff.** Give the agent an issue, check if the patch passes hidden tests. ABC-Bench rejects that frame. Real backend engineering, it argues, is a *lifecycle* — explore an unfamiliar repository, implement across modules, spin up containerized services, run the thing, and validate it with **end-to-end API tests.** The benchmark scores the agent on executing that full workflow, not on producing a plausible patch in a vacuum.\n\nThis is the maturation I've been waiting for. The first wave of agent evals (SWE-bench and friends) was necessary, but it quietly trained the field to optimize the wrong target: localized edits that satisfy a unit test. The part that breaks in production is never the function body — it's the **integration surface.** Does the service boot? Does the migration run? Does the endpoint return the right shape under a real request? ABC-Bench finally puts those in the loop, and the 67 upvotes tell you practitioners recognize their actual job in it.\n\nMy take: this category marks the shift from **'can the model code?' to 'can the model operate?'** Operating is harder because it's stateful, environmental, and unforgiving: there's no partial credit when the container won't start. Expect scores here to be brutally low next to patch benchmarks, and that gap *is the signal.*\n\nThe contrarian caution: end-to-end execution benchmarks are notoriously leaky — flaky containers, network nondeterminism, environment drift — and a high score can reflect a well-tuned harness as much as a capable agent. Reproducibility will make or break this benchmark's authority. But the intent is exactly right. If we want agents that ship services, we have to grade them on shipping services — not on writing the patch and walking away from the wreckage."
+    },
+    {
+      "rank": 14,
+      "title": "Scaling LLM Test-Time Compute Optimally",
+      "lab": "UC Berkeley / Google DeepMind",
+      "votes": 67,
+      "arxiv_id": "2408.03314",
+      "url": "https://hf.co/papers/2408.03314",
+      "tag": "test-time scaling",
+      "verdict": "The paper that licensed the o1 era: spend the thinking budget where the problem is hard, and small models punch far above their parameter count.",
+      "words": 320,
+      "body": "This is the prequel to every reasoning model you use today. Its claim was heretical in mid-2024 and is now orthodoxy: for a fixed compute budget, **allocating FLOPs to test-time search can beat allocating them to a bigger model.** A small model that thinks longer — verifier-guided search, revision, best-of-N tuned to the prompt — can match or exceed a model many times its size that answers in one shot.\n\nThe piece most people forgot is the word **'optimally.'** The headline isn't 'thinking longer helps' — it's that the *right way* to spend test-time compute depends on **problem difficulty.** Easy prompts want shallow sampling; hard prompts want deep search and verification. Naively dumping compute everywhere is wasteful; routing it by difficulty is where the compute-optimal frontier actually lives. That difficulty-adaptive allocation is the under-cited heart of the paper.\n\nMy take: this work quietly rewired the economics of the whole field. It detached capability from parameter count and reattached it to an **inference-time knob you can turn per query.** That's why 'reasoning models' could appear so fast — the recipe was already proven; labs just productized the search loop and the verifier. It also reframed serving: latency and cost became capability dials, not fixed costs.\n\nThe contrarian edge, visible in hindsight: test-time compute is not a free lunch, it's **rented intelligence.** You pay the FLOPs every single inference, forever, and the returns diminish — the curve bends hard. Pair this with the RLVR-ceiling paper at #5 and a sharp picture emerges: pretraining sets the boundary, RL sharpens the first draw, and test-time search rents whatever headroom is left. Three different stages, three different bills. The teams that win the next cycle will be the ones who know precisely which knob is cheapest for their actual workload — and stop paying for the other two out of habit."
+    },
+    {
+      "rank": 15,
+      "title": "MHLA: Restoring Expressivity of Linear Attention",
+      "lab": "NVIDIA / arch group",
+      "votes": 53,
+      "arxiv_id": "2601.07832",
+      "url": "https://hf.co/papers/2601.07832",
+      "tag": "architecture",
+      "verdict": "Linear attention's curse has a name now — global context collapse — and multi-head over the token dimension is the antidote. Softmax is officially on notice.",
+      "words": 312,
+      "body": "Linear attention keeps promising to kill the transformer's quadratic cost and keeps disappointing on quality. MHLA diagnoses *why* with a clean phrase: **global context collapse.** When you compress all keys and values into a fixed-size state, distinct pieces of context smear together — the model loses the ability to keep separate things separate. That's the real reason linear models feel 'mushy' on long, information-dense inputs, and it's why the field kept retreating to softmax.\n\nThe fix is almost embarrassingly elegant: apply **multi-head structure along the token dimension**, not just the feature dimension. By giving the model multiple, independently-mixed views of the sequence, MHLA restores representational diversity — recovering much of softmax's expressive power while *keeping* linear complexity. And it generalizes across modalities: ImageNet classification, NLP, image and video generation.\n\nMy take: 2026 is shaping up as the year the **architecture war reopens**, and MHLA is a key shot. For two years the consensus was 'linear attention is fine for cheap, softmax for serious.' Papers like this — plus the hybrid stacks at #10 (SANA-WM), and now Gated DeltaNet-2 (#6) — are dismantling that binary. The emerging answer isn't pure-linear *or* pure-softmax. It's **knowing precisely which layers need the quadratic cost** and paying it only there.\n\nMy contrarian flag: 'recovers softmax expressivity' is the most over-claimed sentence in this entire subfield — I've read it a dozen times, and the gap always reappears at long context or hard retrieval. The honest verdict needs adversarial long-context stress tests, not benchmark averages. But the *mechanism* here is real and, crucially, nameable — and nameable problems get solved. If linear attention finally closes the quality gap for good, the economics of every long-context deployment on Earth change overnight, and the default transformer block stops being the default."
+    },
+    {
+      "rank": 16,
+      "title": "MSA: Memory Sparse Attention to 100M Tokens",
+      "lab": "long-context memory group",
+      "votes": 50,
+      "arxiv_id": "2603.23516",
+      "url": "https://arxiv.org/abs/2603.23516",
+      "tag": "sparse memory attn",
+      "verdict": "The context-window arms race just got obsoleted by treating memory as a trainable layer, not a buffer you stuff.",
+      "words": 300,
+      "body": "For three years the long-context story has been a window-size pissing contest — 128K, 1M, 10M — while everyone quietly knew the **effective** context of full attention tops out around 1M no matter the advertised number. MSA stops playing that game. It runs **100M-token inference on 2×A800** with **less than 9% degradation** scaling from 16K to 100M, and it does so with **linear complexity in both training and inference**.\n\nThe move that matters is making the memory mechanism **end-to-end trainable**. KV eviction, block-sparse attention, RAG — those are serve-time patches grafted onto a frozen model. MSA learns its sparsity. Pair that with **document-wise RoPE** (reset positions per segment, kill the position-id blowup) and **Memory Interleaving** (chain reasoning across scattered segments), and you get the one thing RAG never could: multi-hop reasoning over memory it didn't pre-select.\n\nThat's the real target here. MSA isn't competing with bigger windows — it's competing with the **entire retrieval stack**. If memory is just attention with the right sparsity, the embedding DB, the reranker, the chunking heuristics all become legacy glue.\n\n**The contrarian angle:** '<9% to 100M' is only a miracle if the benchmark is hard. Long-context evals are notoriously dominated by needle-in-haystack recall, which rewards lookup, not reasoning. A flat degradation curve might be measuring the **benchmark's** flatness, not the model's intelligence. Until we see genuine multi-hop synthesis over 100M tokens — not retrieval-in-disguise — treat the number as a ceiling on difficulty, not a floor on capability. Still: the architecture bet is the right one."
+    },
+    {
+      "rank": 17,
+      "title": "Fast-dLLM: KV Cache + Parallel Decoding for Diffusion LLMs",
+      "lab": "HKU / NVIDIA / MIT",
+      "votes": 46,
+      "arxiv_id": "2505.22618",
+      "url": "https://arxiv.org/abs/2505.22618",
+      "tag": "dLLM KV cache",
+      "words": 180,
+      "verdict": "The paper that made diffusion LLMs practical by stealing autoregressive's best trick — the KV cache — and proving parallel decode can keep quality.",
+      "body": "Fast-dLLM is the anchor of the modern diffusion-LLM acceleration line: it shows a **block-wise approximate KV cache** plus **confidence-aware parallel decoding** can speed up dLLMs **without significant quality loss**, training-free, on LLaDA and Dream.\n\nThe quietly profound bit is the KV cache itself. Diffusion LLMs were 'supposed' to not need autoregressive machinery — yet the thing that made them deployable was importing autoregressive's single most important systems trick.\n\n**Contrarian read:** this is convergence, not competition. Once a diffusion model uses a KV cache and commits high-confidence tokens early, it's structurally one step from speculative autoregressive decoding. Fast-dLLM didn't prove diffusion is the future — it proved the two paradigms are collapsing into one inference stack, and the interesting fights are now about **scheduling and caching**, not the generative objective."
+    },
+    {
+      "rank": 18,
+      "title": "XQuant: Breaking the Memory Wall via KV Cache Rematerialization",
+      "lab": "UC Berkeley (BAIR)",
+      "votes": 42,
+      "arxiv_id": "2508.10395",
+      "url": "https://hf.co/papers/2508.10395",
+      "tag": "inference engineering",
+      "verdict": "Stop storing the KV cache. Recompute it from cheaper activations. XQuant trades the memory wall we're stuck behind for the compute we already have to spare.",
+      "words": 324,
+      "body": "Long-context inference dies on **memory bandwidth**, not math. The KV cache — every key and value, for every token, in every layer — balloons until it dominates both capacity and the bandwidth budget, and the GPU spends its life shuttling cache instead of computing. The field's reflex has been quantization: squeeze the KV cache to 4 bits and pray accuracy holds.\n\nXQuant makes a sharper bet: **don't store the KV cache at all.** Instead, store the much smaller *layer input activations*, and **rematerialize** keys and values on demand by recomputing them. You convert a memory problem into a compute problem — and on modern accelerators, compute is the resource we're drowning in while bandwidth is the one we're starved for. The XQuant-CL variant pushes further, exploiting **cross-layer similarity** in those activations to compress even harder. The reported result: large memory savings at near-FP16 accuracy, well past where naive KV quantization falls apart.\n\nMy take: this is the most economically literate idea in the inference stack right now. Every hardware trend — compute scaling faster than memory bandwidth, the widening 'memory wall' — points the same direction: **recompute beats store.** XQuant is on the right side of that arrow, and I expect rematerialization to become a default serving primitive, the way FlashAttention did.\n\nThe contrarian caveat: rematerialization adds latency on the critical path, and that's the exact thing interactive serving cannot spend. The win is unambiguous for memory-bound, long-context, batch-heavy workloads; for chatty, low-latency single streams the trade can invert. So this isn't a universal switch — it's a **workload-dependent dial.** But naming the dial, and proving it pays for long context, is the contribution. The memory wall didn't get any shorter; XQuant just stopped trying to climb it and tunneled underneath with the spare FLOPs nobody was using anyway."
+    },
+    {
+      "rank": 19,
+      "title": "SlopCodeBench: How Coding Agents Degrade Over Long-Horizon Tasks",
+      "lab": "Wisconsin / SambaNova",
+      "votes": 30,
+      "arxiv_id": "2603.24755",
+      "url": "https://hf.co/papers/2603.24755",
+      "tag": "agents / code quality",
+      "verdict": "Pass-rate hides rot. Agents write code 2.2× more verbose that erodes every iteration; human code stays flat. This is the benchmark we actually needed.",
+      "words": 330,
+      "body": "Every coding benchmark you've seen grades a **single shot**: here's a spec, did the patch pass? SlopCodeBench asks the question that actually matters for anyone who maintains software: what happens when an agent has to **extend its own code, again and again, as the spec evolves?** The answer is bleak and important. Across 20 problems and 93 checkpoints, **no agent solved a single problem end-to-end** across 11 models; the best checkpoint solve rate was **17.2%.**\n\nBut the solve rate isn't the gut-punch — the *trajectory* is. The authors track two quality signals: **verbosity** (redundant, duplicated code) and **structural erosion** (complexity piling into a few monster functions). Erosion rises in **80%** of trajectories; verbosity in **89.8%.** Against 48 real open-source Python repos, agent code is **2.2× more verbose** and markedly more eroded — and tracked over time, **human code stays flat while agent code rots with every iteration.** A prompt intervention improved the *starting* quality but did not stop the decay.\n\nMy take: this is the most honest mirror the agent-coding hype has been handed. Pass-rate benchmarks systematically **undermeasure** the thing that determines real-world cost — extension robustness. An agent that passes the test suite but leaves a codebase you can't extend hasn't helped you; it's sold you **debt at face value.** 'It works' and 'it's maintainable' are different axes, and we've been grading only the first.\n\nThe contrarian counter, in fairness: 'verbosity' and 'erosion' are proxies, and a determined skeptic will argue some duplication is fine if iteration speed is high enough. Maybe. But the human-vs-agent divergence over time is hard to wave away. The lesson isn't 'agents can't code' — they clearly can, in bursts. It's that **design discipline doesn't emerge from reward on passing tests.** Until our benchmarks grade for maintainability directly, we won't get it — and we'll keep shipping software that compiles today and calcifies by Friday."
+    },
+    {
+      "rank": 20,
+      "title": "The Rogue Scalpel: Activation Steering Compromises LLM Safety",
+      "lab": "AIRI / Skoltech",
+      "votes": 28,
+      "arxiv_id": "2509.22067",
+      "url": "https://hf.co/papers/2509.22067",
+      "tag": "safety / interp",
+      "verdict": "The interpretability dream weaponized: the same activation steering meant to make models safe is a near-universal jailbreak. The scalpel cuts both ways.",
+      "words": 320,
+      "body": "Activation steering is the feel-good story of mechanistic interpretability: find the 'refusal' direction in a model's hidden states, nudge it, and make the model safer without retraining. The Rogue Scalpel flips the knife. The same technique that steers *toward* safety steers just as cleanly *away* from it — semantically meaningful vectors can **increase harmful compliance and dissolve alignment safeguards**, and the authors frame it as a near-universal attack.\n\nMy take: this is the paper the interpretability-for-safety crowd needed to read and didn't want to. The field has been selling steering as a control surface — a clean, legible dial on model behavior. But a dial that anyone with white-box access can turn is **not a safety mechanism; it's an attack surface with good PR.** If the refusal behavior reduces to a single steerable direction, then publishing how to find it is publishing the exploit. Interpretability and adversarial robustness are not natural allies here — they're in direct tension.\n\nThis recontextualizes the whole sparse-autoencoder / feature-steering wave (a half-dozen of which surfaced in this same search). 'We found the honesty feature / the refusal feature' is presented as progress. The Rogue Scalpel's retort: every feature you can steer for good, an attacker can steer for harm — and your interpretability paper is their instruction manual.\n\nThe contrarian counter, in fairness: this only bites with white-box access — for closed API models the weights are hidden and the attack is moot. And open-weight models were always jailbreakable by fine-tuning anyway, so steering adds convenience, not a fundamentally new capability. Fair. But it punctures the cleaner claim that steering *adds* safety: at best it's a tripwire, never a wall. The honest framing for the SAE era is uncomfortable but correct — control you can read is control anyone with the weights can seize."
+    },
+    {
+      "rank": 21,
+      "title": "DAWN: Dependency-Aware Fast Inference for Diffusion LLMs",
+      "lab": "Nanyang Technological University",
+      "votes": 6,
+      "arxiv_id": "2602.06953",
+      "url": "https://arxiv.org/abs/2602.06953",
+      "tag": "dLLM scheduling",
+      "words": 300,
+      "verdict": "The best diffusion-LLM speedup of the year isn't an architecture — it's admitting tokens depend on each other and scheduling around it.",
+      "body": "Diffusion LLMs have spent two years advertising **parallel decoding** as their structural edge over autoregressive models. The dirty secret: in practice everyone decodes conservatively, because aggressive parallelism wrecks output quality. DAWN measures exactly how much was left on the table — **1.80–8.06× speedup, training-free, with negligible quality loss**.\n\nThe insight is almost embarrassingly clean. Naive parallel decoding assumes every masked position is **independent**. They aren't — tokens are semantically coupled, so co-committing two *uncertain, strongly-coupled* positions in one step produces garbage. DAWN builds a **dependency graph** and only unmasks positions that become **reliable** conditioned on what's already locked in, deferring the dangerous ones. No new weights, no retraining — a pure inference-time scheduler that drops onto LLaDA/Dream-style models.\n\nWhat I like is the **honesty of the range**. 1.8× to 8× isn't sloppy reporting; it's the truth about dependency structure. Loosely-coupled text parallelizes beautifully; densely-coupled text can't, so the method gracefully degrades toward serial.\n\n**The contrarian angle:** that same honesty is the indictment. The 8× ceiling only appears on easy, loosely-coupled generations. On dense multi-step **reasoning** — where every token constrains the next — dependency-aware decoding collapses back toward sequential, which is precisely where users feel latency most. So the real story isn't 'diffusion beats autoregressive.' It's that both camps are quietly converging on the **same** primitive: commit the tokens you're confident about, defer the rest. The objective is becoming a footnote; the **scheduler** is becoming the product. DAWN is the clearest evidence yet."
+    },
+    {
+      "rank": 22,
+      "title": "S^3-Attention: Endogenous Retrieval for Long-Context Inference",
+      "lab": "academia",
+      "votes": 3,
+      "arxiv_id": "2601.17702",
+      "url": "https://arxiv.org/abs/2601.17702",
+      "tag": "CPU-indexed KV",
+      "words": 180,
+      "verdict": "Pushes the KV cache off the GPU and into a CPU inverted index — clever, but it concedes the memory war to whoever trains sparsity end-to-end.",
+      "body": "S3-Attention replaces traditional KV caching with **sparse feature identification** (via sparse autoencoders) and a **CPU-based inverted index** (BM25-style) for memory-bounded long-context inference. It's a smart systems hack: the GPU stops hoarding keys and values, and retrieval becomes a cheap CPU lookup.\n\nBut squint and it's the same bet RAG made — externalize memory, retrieve on demand — just moved inside the attention layer. The catch is the same too: a **training-free** index can't learn what to keep.\n\n**Contrarian read:** S3 and MSA are racing to the same finish line from opposite ends. S3 keeps the model frozen and gets clever about storage; MSA makes sparsity **trainable** and pays the training cost. History says the trainable approach wins once the compute is affordable — bolt-on indices are where good ideas go to plateau. S3 is the better engineering; MSA is the better bet."
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "2504.13837",
+        "label": "RLVR-ceiling",
+        "cluster": "reasoning",
+        "votes": 141,
+        "tag": "reasoning / RL",
+        "title": "Does RL Really Incentivize Reasoning Beyond the Base Model?"
+      },
+      {
+        "id": "2408.03314",
+        "label": "TestTimeCompute",
+        "cluster": "reasoning",
+        "votes": 67,
+        "tag": "test-time scaling",
+        "title": "Scaling LLM Test-Time Compute Optimally"
+      },
+      {
+        "id": "2511.04570",
+        "label": "ThinkWithVideo",
+        "cluster": "multimodal",
+        "votes": 242,
+        "tag": "multimodal reasoning",
+        "title": "Thinking with Video: Video Generation as a Multimodal Reasoning Paradigm"
+      },
+      {
+        "id": "2605.12500",
+        "label": "SenseNova-U1",
+        "cluster": "multimodal",
+        "votes": 186,
+        "tag": "unified multimodal",
+        "title": "SenseNova-U1: Unifying Understanding and Generation (NEO-unify)"
+      },
+      {
+        "id": "2603.03241",
+        "label": "UniG2U-Bench",
+        "cluster": "multimodal",
+        "votes": 87,
+        "tag": "eval / unified",
+        "title": "UniG2U-Bench: Do Unified Models Advance Multimodal Understanding?"
+      },
+      {
+        "id": "2511.09611",
+        "label": "MMaDA-Parallel",
+        "cluster": "multimodal",
+        "votes": 71,
+        "tag": "multimodal / diffusion",
+        "title": "MMaDA-Parallel: Multimodal Diffusion LMs for Thinking-Aware Editing"
+      },
+      {
+        "id": "2605.15178",
+        "label": "SANA-WM",
+        "cluster": "world",
+        "votes": 81,
+        "tag": "world models",
+        "title": "SANA-WM: Efficient Minute-Scale World Modeling"
+      },
+      {
+        "id": "2601.07832",
+        "label": "MHLA",
+        "cluster": "efficiency",
+        "votes": 53,
+        "tag": "architecture",
+        "title": "MHLA: Restoring Expressivity of Linear Attention"
+      },
+      {
+        "id": "2508.10395",
+        "label": "XQuant",
+        "cluster": "efficiency",
+        "votes": 42,
+        "tag": "inference engineering",
+        "title": "XQuant: KV Cache Rematerialization"
+      },
+      {
+        "id": "2601.11077",
+        "label": "ABC-Bench",
+        "cluster": "agents",
+        "votes": 67,
+        "tag": "agents / coding",
+        "title": "ABC-Bench: Agentic Backend Coding"
+      },
+      {
+        "id": "2603.24755",
+        "label": "SlopCodeBench",
+        "cluster": "agents",
+        "votes": 30,
+        "tag": "agents / code quality",
+        "title": "SlopCodeBench: How Coding Agents Degrade"
+      },
+      {
+        "id": "2509.22067",
+        "label": "RogueScalpel",
+        "cluster": "safety",
+        "votes": 28,
+        "tag": "safety / interp",
+        "title": "The Rogue Scalpel: Activation Steering Compromises LLM Safety"
+      },
+      {
+        "id": "2602.03442",
+        "label": "A-RAG",
+        "cluster": "agents",
+        "votes": 274,
+        "tag": "retrieval / RAG",
+        "title": "A-RAG: Scaling Agentic RAG via Hierarchical Retrieval Interfaces"
+      },
+      {
+        "id": "2604.07430",
+        "label": "HY-Embodied",
+        "cluster": "world",
+        "votes": 68,
+        "tag": "robotics / embodied",
+        "title": "HY-Embodied-0.5: Embodied Foundation Models for Real-World Agents"
+      },
+      {
+        "id": "2605.23904",
+        "label": "SkillOpt",
+        "cluster": "agents",
+        "votes": 106,
+        "tag": "agents / skills",
+        "title": "SkillOpt: Executive Strategy for Self-Evolving Agent Skills"
+      },
+      {
+        "id": "2605.21573",
+        "label": "Lens-T2I",
+        "cluster": "efficiency",
+        "votes": 85,
+        "tag": "training efficiency",
+        "title": "Lens: Rethinking Training Efficiency for Foundational T2I Models"
+      },
+      {
+        "id": "2605.21467",
+        "label": "DelTA-RLVR",
+        "cluster": "reasoning",
+        "votes": 198,
+        "tag": "RL / reasoning",
+        "title": "DelTA: Discriminative Token Credit Assignment for RLVR"
+      },
+      {
+        "id": "2605.22791",
+        "label": "GatedDNet-2",
+        "cluster": "efficiency",
+        "votes": 136,
+        "tag": "architecture",
+        "title": "Gated DeltaNet-2: Decoupling Erase and Write in Linear Attention"
+      },
+      {
+        "id": "2603.23516",
+        "label": "MSA-100M",
+        "cluster": "efficiency",
+        "votes": 50,
+        "tag": "sparse memory attn",
+        "title": "MSA: Memory Sparse Attention Scaling to 100M Tokens"
+      },
+      {
+        "id": "2601.17702",
+        "label": "S3-Attn",
+        "cluster": "efficiency",
+        "votes": 3,
+        "tag": "CPU-indexed KV",
+        "title": "S^3-Attention: Endogenous Retrieval for Long-Context Inference"
+      },
+      {
+        "id": "2602.06953",
+        "label": "DAWN-dLLM",
+        "cluster": "efficiency",
+        "votes": 6,
+        "tag": "dLLM scheduling",
+        "title": "DAWN: Dependency-Aware Fast Inference for Diffusion LLMs"
+      },
+      {
+        "id": "2505.22618",
+        "label": "Fast-dLLM",
+        "cluster": "efficiency",
+        "votes": 46,
+        "tag": "dLLM KV cache",
+        "title": "Fast-dLLM: KV Cache + Parallel Decoding for Diffusion LLMs"
+      }
+    ],
+    "edges": [
+      {
+        "source": "2504.13837",
+        "target": "2408.03314",
+        "relType": "shared",
+        "relation": "compute-stage thesis",
+        "note": "RL sharpens the first draw; search rents headroom — two of three compute bills"
+      },
+      {
+        "source": "2504.13837",
+        "target": "2511.04570",
+        "relType": "bridge",
+        "relation": "video reasoning = test-time compute in pixel space",
+        "note": "same pass@k illusion risk if reported as single-sample wins"
+      },
+      {
+        "source": "2408.03314",
+        "target": "2511.04570",
+        "relType": "extends",
+        "relation": "next test-time-compute substrate",
+        "note": "search/simulation moves from tokens to frames"
+      },
+      {
+        "source": "2605.12500",
+        "target": "2603.03241",
+        "relType": "tension",
+        "relation": "flagship claim vs benchmark reality",
+        "note": "unified models still trail specialist VLMs on understanding"
+      },
+      {
+        "source": "2605.12500",
+        "target": "2511.09611",
+        "relType": "shared",
+        "relation": "both unify understanding + generation",
+        "note": "AR backbone vs diffusion backbone"
+      },
+      {
+        "source": "2504.13837",
+        "target": "2605.12500",
+        "relType": "bridge",
+        "relation": "apply RLVR-style audit to unification",
+        "note": "'generation helps understanding' may be sharpening, not new capability"
+      },
+      {
+        "source": "2605.15178",
+        "target": "2601.07832",
+        "relType": "shared",
+        "relation": "attack global context collapse via attention design",
+        "note": "hybrid linear attn ↔ multi-head linear attn"
+      },
+      {
+        "source": "2605.15178",
+        "target": "2508.10395",
+        "relType": "shared",
+        "relation": "trade memory for compute · low-bit serving",
+        "note": "NVFP4 quantization ↔ KV rematerialization"
+      },
+      {
+        "source": "2601.07832",
+        "target": "2508.10395",
+        "relType": "bridge",
+        "relation": "two routes to long context → multiplicative",
+        "note": "cheaper attention state × cheaper cache storage"
+      },
+      {
+        "source": "2511.04570",
+        "target": "2605.15178",
+        "relType": "extends",
+        "relation": "efficient world model = cheap video-reasoning substrate",
+        "note": "video-thinking inherits every world-model efficiency win"
+      },
+      {
+        "source": "2601.11077",
+        "target": "2603.24755",
+        "relType": "tension",
+        "relation": "single-shot ops success vs long-horizon rot",
+        "note": "passing the lifecycle test ≠ maintainable code"
+      },
+      {
+        "source": "2603.24755",
+        "target": "2509.22067",
+        "relType": "bridge",
+        "relation": "steer against code erosion",
+        "note": "if maintainability is a steerable vector, fix what reward can't"
+      },
+      {
+        "source": "2509.22067",
+        "target": "2504.13837",
+        "relType": "shared",
+        "relation": "puncture a hype narrative with one measurement",
+        "note": "steering-as-safety / RL-as-reasoning both fail the control"
+      },
+      {
+        "source": "2605.12500",
+        "target": "2509.22067",
+        "relType": "tension",
+        "relation": "unified agentic models = larger steering attack surface",
+        "note": "more capabilities in one model = more directions to hijack"
+      },
+      {
+        "source": "2602.03442",
+        "target": "2601.11077",
+        "relType": "extends",
+        "relation": "retrieval scaffold for agentic ops",
+        "note": "hierarchical search = missing infrastructure for backend coding agents"
+      },
+      {
+        "source": "2602.03442",
+        "target": "2603.24755",
+        "relType": "bridge",
+        "relation": "self-retrieval to detect code rot",
+        "note": "chunk-read prior output to catch structural erosion before next write"
+      },
+      {
+        "source": "2602.03442",
+        "target": "2408.03314",
+        "relType": "shared",
+        "relation": "difficulty-adaptive context allocation",
+        "note": "both route more compute to harder queries; different search spaces"
+      },
+      {
+        "source": "2604.07430",
+        "target": "2511.04570",
+        "relType": "bridge",
+        "relation": "video reasoning = robot world simulation",
+        "note": "VLA policy = video-thinking grounded in physical actuation space"
+      },
+      {
+        "source": "2604.07430",
+        "target": "2605.15178",
+        "relType": "extends",
+        "relation": "world model → robot training data",
+        "note": "cheap video generation fills VLA training gaps without real-world collection"
+      },
+      {
+        "source": "2604.07430",
+        "target": "2601.11077",
+        "relType": "tension",
+        "relation": "physical lifecycle vs software lifecycle",
+        "note": "physical irreversibility raises stakes far beyond failing an API test"
+      },
+      {
+        "source": "2605.23904",
+        "target": "2603.24755",
+        "relType": "bridge",
+        "relation": "validation gate vs erosion metric",
+        "note": "SkillOpt's held-out score = maintainability signal SlopCodeBench says reward can't provide"
+      },
+      {
+        "source": "2605.23904",
+        "target": "2601.11077",
+        "relType": "extends",
+        "relation": "optimized skills for lifecycle agents",
+        "note": "validated skill docs reduce backend-coding failure modes in multi-step runs"
+      },
+      {
+        "source": "2605.23904",
+        "target": "2602.03442",
+        "relType": "shared",
+        "relation": "external agent state: retrieve vs train",
+        "note": "A-RAG retrieves knowledge docs; SkillOpt trains them — same external-state paradigm"
+      },
+      {
+        "source": "2605.21573",
+        "target": "2605.15178",
+        "relType": "shared",
+        "relation": "efficiency over scale, distilled inference",
+        "note": "dense captions ↔ hybrid linear attn; both substitute information density for raw parameter size"
+      },
+      {
+        "source": "2605.21573",
+        "target": "2605.12500",
+        "relType": "tension",
+        "relation": "efficient specialist vs unified generalist",
+        "note": "3.8B Lens beats 6B+ unified models — unification still pays a per-task compute tax"
+      },
+      {
+        "source": "2605.21573",
+        "target": "2601.07832",
+        "relType": "shared",
+        "relation": "architectural choices drive training efficiency",
+        "note": "semantic VAE + strong LM encoder ↔ MHLA restores expressivity at linear cost"
+      },
+      {
+        "source": "2605.21467",
+        "target": "2504.13837",
+        "relType": "extends",
+        "relation": "per-token credit may expand RL precision",
+        "note": "RLVR-ceiling found sharpening; DelTA diagnoses it as undifferentiated credit blur"
+      },
+      {
+        "source": "2605.21467",
+        "target": "2605.23904",
+        "relType": "bridge",
+        "relation": "token-level vs doc-level credit gates",
+        "note": "SkillOpt gates skill edits; DelTA gates token updates — same precision principle, different granularity"
+      },
+      {
+        "source": "2605.21467",
+        "target": "2408.03314",
+        "relType": "tension",
+        "relation": "internal vs external search for correctness",
+        "note": "DelTA internalizes reward signal at training time; test-time compute externalizes it — convergent ambitions"
+      },
+      {
+        "source": "2605.22791",
+        "target": "2601.07832",
+        "relType": "extends",
+        "relation": "two orthogonal fixes for linear attention quality",
+        "note": "MHLA adds token-dim multi-head; GDN-2 decouples erase/write — complementary not competing"
+      },
+      {
+        "source": "2605.22791",
+        "target": "2605.15178",
+        "relType": "extends",
+        "relation": "GDN-2 is drop-in upgrade to SANA-WM core",
+        "note": "SANA-WM uses hybrid Gated DeltaNet; GDN-2 is its precision-corrected successor"
+      },
+      {
+        "source": "2605.22791",
+        "target": "2508.10395",
+        "relType": "shared",
+        "relation": "precise state editing × cache recompute",
+        "note": "both reduce memory pressure via targeted updates rather than storing more"
+      },
+      {
+        "source": "2602.03442",
+        "target": "2605.21467",
+        "relType": "bridge",
+        "relation": "verification over generation",
+        "note": "both spend marginal compute adjudicating tokens, not making them"
+      },
+      {
+        "source": "2603.23516",
+        "target": "2508.10395",
+        "relType": "tension",
+        "relation": "compress vs recompute KV",
+        "note": "both kill KV cost — sparse-evict vs rematerialize"
+      },
+      {
+        "source": "2603.23516",
+        "target": "2605.22791",
+        "relType": "tension",
+        "relation": "sparse softmax vs linear attn",
+        "note": "rival routes to cheap long context"
+      },
+      {
+        "source": "2603.23516",
+        "target": "2602.03442",
+        "relType": "bridge",
+        "relation": "memory-as-arch vs retrieval",
+        "note": "MSA folds RAG into trainable attention"
+      },
+      {
+        "source": "2601.17702",
+        "target": "2603.23516",
+        "relType": "shared",
+        "relation": "retrieval-style sparse KV",
+        "note": "replace dense KV with sparse lookup"
+      },
+      {
+        "source": "2601.17702",
+        "target": "2508.10395",
+        "relType": "shared",
+        "relation": "KV cache reduction",
+        "note": "indexing vs rematerialization"
+      },
+      {
+        "source": "2602.06953",
+        "target": "2505.22618",
+        "relType": "extends",
+        "relation": "schedules which tokens co-commit",
+        "note": "dependency graph on top of parallel decode"
+      },
+      {
+        "source": "2602.06953",
+        "target": "2511.09611",
+        "relType": "shared",
+        "relation": "parallel non-AR decoding",
+        "note": "both exploit order-free token commitment"
+      },
+      {
+        "source": "2505.22618",
+        "target": "2508.10395",
+        "relType": "shared",
+        "relation": "KV cache for non-AR models",
+        "note": "brings KV caching to diffusion LLMs"
+      },
+      {
+        "source": "2505.22618",
+        "target": "2603.23516",
+        "relType": "tension",
+        "relation": "speed via parallelism vs sparse memory",
+        "note": "two different axes of cheap inference"
+      }
+    ]
+  },
+  "synthesis": [
+    {
+      "id": "SYN-10",
+      "title": "Autoregressive, diffusion, and sparse-memory are all converging on one inference stack",
+      "papers": [
+        "2505.22618",
+        "2602.06953",
+        "2603.23516"
+      ],
+      "idea": "Three papers that look like they're in different fields are quietly building the same machine. **Fast-dLLM** gave diffusion LLMs a KV cache and confidence-based early commit. **DAWN** added a dependency graph to decide *which* tokens to commit in parallel. **MSA** made attention sparse and trainable to hold 100M-token memory. Treated separately they're 'diffusion efficiency' and 'long-context efficiency.'\n\nThe hypothesis: they're the three subsystems of a single future inference engine — a **commitment scheduler** (DAWN: what to decode now), a **reuse layer** (Fast-dLLM's KV cache: what to recompute), and a **memory layer** (MSA: what to keep at scale). The generative objective (autoregressive vs diffusion) is becoming the least important choice; the engine around it — schedule, cache, memory — is where the wins concentrate. Whoever fuses all three first ships the first model that is simultaneously fast to decode AND lifetime-context.",
+      "testable": "A diffusion-LLM backbone with (a) DAWN-style dependency scheduling and (b) MSA-style trainable sparse memory will beat a strong autoregressive model at **equal latency** on a long-context multi-hop benchmark — and the gap will widen as context length grows."
+    },
+    {
+      "id": "SYN-9",
+      "title": "The three forks of cheap long context are composable, not competing",
+      "papers": [
+        "2603.23516",
+        "2508.10395",
+        "2605.22791"
+      ],
+      "idea": "Three 2025-26 papers attack the same wall — attention's quadratic cost over long context — from three directions that everyone treats as rivals. **MSA** keeps softmax attention but makes it **sparse and trainable** (evict what doesn't matter). **XQuant** keeps full attention but **rematerializes** the KV cache instead of storing it (recompute what you dropped). **Gated DeltaNet-2** throws out softmax entirely for **linear attention** (never pay the quadratic at all).\n\nThe field frames these as a bake-off. The hypothesis: they're **orthogonal layers of one memory hierarchy**. Linear attention is the cheap L1 cache (recent / hot context), trainable sparse attention is the L2 (mid-range, learned salience), and KV rematerialization is the swap-to-disk fallback for the cold tail. A model that routes tokens across all three by recency and salience would beat any single method at fixed compute — exactly the way CPUs beat flat memory with a cache hierarchy.",
+      "testable": "A hybrid stacking linear-attn (recent window) + MSA-style trainable sparsity (mid context) + XQuant rematerialization (cold tail) will hit lower perplexity at equal FLOPs than any one of the three alone on a 1M+ token benchmark."
+    },
+    {
+      "id": "SYN-1",
+      "title": "The Three-Bill Compute Thesis",
+      "papers": [
+        "2504.13837",
+        "2408.03314",
+        "2511.04570"
+      ],
+      "idea": "Three papers, read together, collapse into one model of where intelligence is actually bought. #3 (RLVR) shows RL only **sharpens** the base distribution — it doesn't raise the ceiling. #8 (test-time compute) shows search **rents** capability per query, with diminishing returns. #1 (Thinking with Video) adds a third venue — reasoning inside generated pixels.\n\nMy synthesized claim: **video-thinking is not a new kind of reasoning; it is test-time compute relocated into pixel space**, and it therefore inherits both other papers' laws. It will show #8's difficulty-adaptive optimum (cheap problems shouldn't render video), and it will show #3's pass@k illusion the moment anyone reports single-sample wins. The unifying frame no single paper states: **pretraining sets the ceiling, RL sharpens the first draw, search/simulation rents the rest — three stages, three separate bills.**",
+      "testable": "Evaluate 'thinking with video' at high sampling budgets (a pass@k for video reasoning). If the gain over a strong text-CoT base shrinks the way RLVR's gain shrinks at high k, video-thinking is sharpening + rental, not a new capability ceiling."
+    },
+    {
+      "id": "SYN-2",
+      "title": "Unification Needs a pass@k-Style Audit",
+      "papers": [
+        "2605.12500",
+        "2603.03241",
+        "2504.13837"
+      ],
+      "idea": "The unified-model wave (#2 SenseNova-U1) is repeating the exact methodological mistake the RL-reasoning field made (#3). Both report **aggregate wins** — 'generation helps understanding', 'RL teaches reasoning' — without the **control that isolates the mechanism.** #4 (UniG2U-Bench) is, structurally, to unification what pass@k is to RLVR: the honesty instrument that asks 'is the effect real, or an artifact of measurement?'\n\nMy synthesized hypothesis: **the 'generation improves understanding' effect is itself a distribution-sharpening effect, not new capability.** Generating an intermediate image narrows the model's answer distribution the same way RL narrows it toward rewarded paths. If true, a strong base VLM given enough samples should match the unified model's generate-then-answer accuracy on most subtasks — with the gap surviving only where the task is *intrinsically* visual-constructive.",
+      "testable": "On UniG2U-Bench, compare unified generate-then-answer vs a base VLM at matched compute / high sampling. If the unified advantage vanishes except on spatial-construction subtasks, unification is sharpening — not new understanding."
+    },
+    {
+      "id": "SYN-3",
+      "title": "The Efficiency Stack Is One Bet: Recompute Over Store",
+      "papers": [
+        "2605.15178",
+        "2508.10395",
+        "2601.07832"
+      ],
+      "idea": "Three independent efficiency results are secretly the **same bet about 2026 hardware**: compute is cheap, memory bandwidth is the wall, so spend FLOPs to save bytes. #5 (SANA-WM) uses hybrid linear attention + NVFP4 to fit a minute of video on one GPU. #10 (XQuant) throws away the KV cache and **recomputes** it from smaller activations. #9 (MHLA) makes linear attention actually good, removing the quality reason to keep the expensive softmax cache.\n\nMy synthesized design: **stack them.** Put MHLA layers (cheap attention, small state) underneath XQuant (cheap cache via rematerialization) inside a SANA-WM-style hybrid. Because they attack *different* terms of the memory bill — state size vs cache storage — the savings should be **multiplicative, not additive.** Nobody has co-designed the three; the graph says they're complementary, not competing.",
+      "testable": "Build an MHLA + XQuant hybrid and measure peak memory on a 1M-token context. Prediction: combined memory reduction exceeds the product of each technique's individually-reported reduction, at <1% quality loss."
+    },
+    {
+      "id": "SYN-4",
+      "title": "A Maintainability Vector: Steer Against Code Rot",
+      "papers": [
+        "2603.24755",
+        "2601.11077",
+        "2509.22067"
+      ],
+      "idea": "#11 (SlopCodeBench) diagnoses *why* agent code rots over iterations: pass-rate reward gives **no gradient for maintainability**, so erosion and verbosity climb unchecked. #12 (The Rogue Scalpel) proves something adjacent and wild: complex behaviors like refusal often reduce to a **single steerable direction** in activation space.\n\nMy synthesized leap: if 'refuses harmful requests' is a steerable vector, then **'writes clean, low-complexity, non-duplicative code' may also be a steerable vector** — a *maintainability direction.* That would let you **steer against erosion at inference time**, sidestepping the missing reward gradient entirely. The Rogue Scalpel frames steering as an attack; flipped, the same mechanism becomes the maintainability control SlopCodeBench says reward can't provide. #7 (ABC-Bench) supplies the realistic lifecycle harness to test it on — not toy patches.",
+      "testable": "Extract a 'code quality' steering vector (clean vs eroded code activations) and apply it during SlopCodeBench long-horizon runs. Prediction: steered runs show a lower structural-erosion slope across checkpoints than unsteered, at equal pass-rate."
+    },
+    {
+      "id": "SYN-5",
+      "title": "Code Rot Is a Retrieval Failure",
+      "papers": [
+        "2602.03442",
+        "2603.24755",
+        "2601.11077"
+      ],
+      "idea": "SlopCodeBench proves code erodes over long-horizon iterations because **pass-rate reward gives no signal about structural integrity** — agents write the next extension without remembering what came before. ABC-Bench proves the full lifecycle matters: a service that boots but is unmaintainable is a deferred failure. A-RAG proves that **hierarchical self-querying** at multiple granularities — keyword, semantic, chunk-read — is how an agent efficiently recovers relevant prior context without stuffing the whole codebase into its window.\n\nThe novel synthesis no paper states: **long-horizon code rot is fundamentally a retrieval problem.** Agents erode structure not because they lack reasoning capacity but because they lose *access* to prior decisions as context grows. A-RAG's chunk-read interface, applied recursively to the agent's own prior output, could let it detect when a module has grown too complex *before* writing the next iteration — closing the structural feedback loop that reward cannot provide. The three papers form an unexpected closed loop: A-RAG supplies the retrieval mechanism, SlopCodeBench supplies the failure signal to detect, and ABC-Bench supplies the realistic evaluation harness.",
+      "testable": "Run SlopCodeBench long-horizon tasks with an A-RAG-style self-retrieval loop. Prediction: agents with adaptive chunk-read access to their own prior code show a lower structural-erosion slope per checkpoint than unaugmented agents, at equal or better pass-rate."
+    },
+    {
+      "id": "SYN-6",
+      "title": "Optimize the Skill, Not the Weight",
+      "papers": [
+        "2605.23904",
+        "2603.24755",
+        "2602.03442"
+      ],
+      "idea": "SlopCodeBench diagnosed why long-horizon agents erode: **pass-rate reward gives no gradient for maintainability**, so structure decays with every iteration. A-RAG showed agents need hierarchically-retrievable external knowledge state to avoid losing context mid-task. SkillOpt adds the third piece: the skill document itself can be **trained in text space with optimizer discipline** — validation gates, rejected-edit buffers, learning-rate budgets — bringing the same stability guarantees to skill documents that gradient descent brings to weights.\n\nThe synthesis no single paper states: agent stability is an **optimization problem in text space**, not just a reward problem or a context problem. SkillOpt provides the optimizer; A-RAG provides the retrieval mechanism that feeds the optimizer with relevant prior state; SlopCodeBench provides the *failure metric* — structural erosion score — that should serve as SkillOpt's held-out validation criterion. The three form a closed loop: retrieve prior code structure (A-RAG), update the skill document toward lower erosion (SkillOpt), evaluate against the lifecycle benchmark (SlopCodeBench).\n\nThis suggests a concrete pipeline nobody has built: SkillOpt applied to a structural-integrity skill doc, validated by erosion and verbosity metrics from SlopCodeBench, with A-RAG self-retrieval as the context signal during optimization.",
+      "testable": "Run SkillOpt in a SlopCodeBench long-horizon sequence with the skill doc encoding structural constraints. Prediction: SkillOpt-trained skill docs show measurably lower structural-erosion slope than prompt interventions at equal pass-rate."
+    },
+    {
+      "id": "SYN-7",
+      "title": "The Credit-Memory Correspondence",
+      "papers": [
+        "2605.21467",
+        "2504.13837",
+        "2605.22791"
+      ],
+      "idea": "DelTA and Gated DeltaNet-2, from completely separate research threads, are solving the **same problem at different levels of abstraction**: how to make a learning update precise rather than blunt when the true causal structure is distributed across many contributing elements.\n\nRLVR-ceiling (2504.13837) observed that RL sharpens without expanding the reasoning boundary. DelTA makes the implicit cause explicit: **undifferentiated credit corrupts the training signal** — every token gets the outcome's weight, so the model can't learn which patterns are causally responsible versus coincidentally present. Gated DeltaNet-2 solves the analogous problem in the **inference-time memory** of a linear attention model: a single gate conflates erase and write, so the state update is imprecise. GDN-2 decouples them to enable targeted, non-destructive edits.\n\nThe bridge: both are **decoupling correctness from assignment.** In DelTA, 'this trajectory was correct' is decoupled from 'each token contributed.' In GDN-2, 'this key should be updated' is decoupled from 'how aggressively to write new information.' The same precision principle operates at **training time** (DelTA) and **inference time** (GDN-2).\n\nNovel hypothesis: if GDN-2-style decoupled state editing is applied to the recurrent memory of a reasoning model *during generation*, it could preserve causal reasoning paths better across long chains — the inference-time analog of what DelTA does during training. A model trained with DelTA's discriminative credit *and* running GDN-2-style linear attention memory might close the pass@k gap that RLVR-ceiling identified, from both ends simultaneously.",
+      "testable": "Train a reasoning model with DelTA credit assignment and deploy it with GDN-2-based linear attention layers. Prediction: the combined system shows measurably higher pass@k at k>8 relative to vanilla RLVR + standard softmax attention, with the gain exceeding the sum of each technique's individual contribution — a superadditive effect from solving training-time and inference-time precision jointly."
+    },
+    {
+      "id": "SYN-8",
+      "title": "Verification Is the Scaling Axis, Not Generation",
+      "papers": [
+        "2602.03442",
+        "2605.21467",
+        "2408.03314"
+      ],
+      "idea": "The field keeps framing progress as *generate more, generate better* — more retrieval hops (**A-RAG**), longer reasoning chains (**Test-Time Compute**), sharper credit on the tokens you already produced (**DelTA**). But look at where each spends its marginal FLOP: **verification, not generation.**\n\nA-RAG's wins come from an agent that re-queries and *checks* evidence against its own claim. DelTA's per-token credit is a learned *verifier* deciding which tokens were causally responsible for a correct outcome. And optimal test-time compute, when you read the curves, is a *selection/verification search over samples* — not simply a longer monologue.\n\nThe unstated thesis tying them together: across both **training and inference**, the bottleneck already moved from *producing* candidate tokens to *adjudicating* them. This is exactly why the **RLVR-ceiling** result isn't a dead end — RL can't add reasoning the base model lacks, but a better verifier extracts far more of what's already latent.",
+      "testable": "At a fixed FLOP budget, a model trained with DelTA-style credit and deployed with A-RAG retrieval wired in as an inline verifier should beat naive test-time-compute sampling — the verification-heavy stack wins per-FLOP, not the generation-heavy one."
+    }
+  ],
+  "log": [
+    {
+      "t": "22:34:09",
+      "msg": "feat · 🦴 added TRENDING panel — last-24h + this-week hot lists, big-lab (Microsoft/Meta/Google) prioritized"
+    },
+    {
+      "t": "22:30:09",
+      "msg": "cyc8 · 🦴 done — DAWN in the spotlight, AR-vs-diffusion war declared a distraction."
+    },
+    {
+      "t": "22:30:09",
+      "msg": "cyc8 · +1 synthesis SYN-10: AR/diffusion/sparse-memory = one inference stack (schedule+cache+memory)"
+    },
+    {
+      "t": "22:30:09",
+      "msg": "cyc8 · +4 edges (DAWN→Fast-dLLM extends, Fast-dLLM→XQuant shared, Fast-dLLM→MSA tension)"
+    },
+    {
+      "t": "22:30:09",
+      "msg": "cyc8 · +2 nodes: DAWN-dLLM + Fast-dLLM (efficiency) · re-ranked articles"
+    },
+    {
+      "t": "22:30:09",
+      "msg": "cyc8 · dug DAWN 2602.06953: 1.80–8.06x dLLM speedup, training-free, dependency-graph scheduler"
+    },
+    {
+      "t": "22:30:09",
+      "msg": "cyc8 · dedup: DAWN + Fast-dLLM NEW vs 20 known ids · rotated deep-dive MSA→DAWN"
+    },
+    {
+      "t": "22:30:06",
+      "msg": "cyc8 · 🦴 new hunt — rotating topic to diffusion LLMs (filter)"
+    },
+    {
+      "t": "22:22:48",
+      "msg": "cyc7 · 🦴 done — MSA cracked open, RAG put on notice. dashboard repainted."
+    },
+    {
+      "t": "22:22:48",
+      "msg": "cyc7 · +1 synthesis idea SYN-9: linear/sparse/rematerialize = one memory hierarchy, not 3 rivals"
+    },
+    {
+      "t": "22:22:48",
+      "msg": "cyc7 · +5 graph edges (MSA↔XQuant tension, MSA↔GatedDeltaNet-2 tension, MSA↔A-RAG bridge)"
+    },
+    {
+      "t": "22:22:48",
+      "msg": "cyc7 · +2 nodes: MSA-100M + S3-Attn (efficiency cluster) · re-ranked articles by votes"
+    },
+    {
+      "t": "22:22:48",
+      "msg": "cyc7 · dug MSA 2603.23516: 100M tokens, <9% deg 16K→100M, 2×A800, linear train+infer"
+    },
+    {
+      "t": "22:22:48",
+      "msg": "cyc7 · dedup: MSA + S3-Attn are NEW (not in 18 known ids); skipped 2408.03314 (already a node)"
+    }
+  ],
+  "trending": {
+    "updated": "2026-05-25T22:34:09Z",
+    "hero": {
+      "title": "SkillOpt: Executive Strategy for Self-Evolving Agent Skills",
+      "org": "Microsoft Research",
+      "lab": "MSR Asia",
+      "arxiv_id": "2605.23904",
+      "url": "https://arxiv.org/abs/2605.23904",
+      "why": "The first **text-space optimizer for agent skills** — treats a skill doc like trainable external state with bounded add/delete/replace edits accepted only on held-out gains. Lifts **GPT-5.5 by +23.5 pts** in chat, **+24.8 inside Codex**, **+19.1 inside Claude Code**, and beats GEPA, TextGrad, EvoSkill on all 52 (model,bench,harness) cells. Why it's loud: it's a big lab putting hard numbers on the 'skills > fine-tuning' bet, on the exact agent harnesses people use daily."
+    },
+    "bigLabs": [
+      {
+        "org": "Microsoft Research",
+        "title": "SkillOpt — trainable agent skills",
+        "note": "+23.5 pts on GPT-5.5; works inside Claude Code & Codex; beats GEPA/TextGrad/EvoSkill.",
+        "arxiv_id": "2605.23904",
+        "url": "https://arxiv.org/abs/2605.23904"
+      },
+      {
+        "org": "Meta FAIR",
+        "title": "PGT — procedurally generated tasks",
+        "note": "Overlay geometric primitives to fix MLLM visual grounding: +20% What'sUp, +13.3% CV-Bench-2D.",
+        "arxiv_id": "2605.23883",
+        "url": "https://arxiv.org/abs/2605.23883"
+      },
+      {
+        "org": "Meta · Princeton",
+        "title": "Strong Teacher Not Needed?",
+        "note": "Weak/undertrained teachers can still improve bigger students; stronger teacher can even reverse gains.",
+        "arxiv_id": "2605.23857",
+        "url": "https://arxiv.org/abs/2605.23857"
+      },
+      {
+        "org": "Google",
+        "title": "frontier models under test",
+        "note": "This week's eval papers lean on Gemini-3.1 & 1T-param Kimi K2.5 (ETCHR) — big-lab models as the new baselines.",
+        "arxiv_id": "2605.23897",
+        "url": "https://arxiv.org/abs/2605.23897"
+      }
+    ],
+    "day": [
+      {
+        "rank": 1,
+        "title": "SkillOpt: Executive Strategy for Self-Evolving Agent Skills",
+        "org": "Microsoft Research",
+        "bigLab": true,
+        "heat": 96,
+        "tag": "agent skills",
+        "arxiv_id": "2605.23904",
+        "url": "https://arxiv.org/abs/2605.23904",
+        "when": "Fri May 22"
+      },
+      {
+        "rank": 2,
+        "title": "LLMs as Noisy Channels: A Shannon Perspective on Capacity & Scaling Laws",
+        "lab": "academia",
+        "heat": 88,
+        "tag": "scaling-law theory",
+        "arxiv_id": "2605.23901",
+        "url": "https://arxiv.org/abs/2605.23901",
+        "when": "Fri May 22"
+      },
+      {
+        "rank": 3,
+        "title": "Strong Teacher Not Needed? On Distillation in LLM Pretraining",
+        "org": "Meta · Princeton",
+        "bigLab": true,
+        "heat": 84,
+        "tag": "distillation",
+        "arxiv_id": "2605.23857",
+        "url": "https://arxiv.org/abs/2605.23857",
+        "when": "Fri May 22"
+      },
+      {
+        "rank": 4,
+        "title": "It's the humans, not the data: Geopolitical bias originates in post-training",
+        "lab": "audit / alignment",
+        "heat": 81,
+        "tag": "alignment audit",
+        "arxiv_id": "2605.23825",
+        "url": "https://arxiv.org/abs/2605.23825",
+        "when": "Fri May 22"
+      },
+      {
+        "rank": 5,
+        "title": "Training-Free Looped Transformers",
+        "lab": "UT Austin",
+        "heat": 77,
+        "tag": "inference-time depth",
+        "arxiv_id": "2605.23872",
+        "url": "https://arxiv.org/abs/2605.23872",
+        "when": "Fri May 22"
+      },
+      {
+        "rank": 6,
+        "title": "PGT: Procedurally Generated Tasks for visual grounding in MLLMs",
+        "org": "Meta FAIR",
+        "bigLab": true,
+        "heat": 74,
+        "tag": "multimodal data",
+        "arxiv_id": "2605.23883",
+        "url": "https://arxiv.org/abs/2605.23883",
+        "when": "Fri May 22"
+      }
+    ],
+    "week": [
+      {
+        "rank": 1,
+        "title": "SkillOpt: Executive Strategy for Self-Evolving Agent Skills",
+        "org": "Microsoft Research",
+        "bigLab": true,
+        "heat": 96,
+        "tag": "agent skills",
+        "arxiv_id": "2605.23904",
+        "url": "https://arxiv.org/abs/2605.23904",
+        "when": "May 22"
+      },
+      {
+        "rank": 2,
+        "title": "SenseNova-U1: Unifying Understanding and Generation",
+        "lab": "SenseTime",
+        "heat": 90,
+        "tag": "unified multimodal",
+        "arxiv_id": "2605.12500",
+        "url": "https://arxiv.org/abs/2605.12500",
+        "when": "May 15"
+      },
+      {
+        "rank": 3,
+        "title": "Gated DeltaNet-2: Decoupling Erase and Write in Linear Attention",
+        "lab": "academia/industry",
+        "heat": 86,
+        "tag": "linear attention",
+        "arxiv_id": "2605.22791",
+        "url": "https://arxiv.org/abs/2605.22791",
+        "when": "May 21"
+      },
+      {
+        "rank": 4,
+        "title": "DelTA: Discriminative Token Credit Assignment for RLVR",
+        "lab": "academia",
+        "heat": 82,
+        "tag": "RLVR",
+        "arxiv_id": "2605.21467",
+        "url": "https://arxiv.org/abs/2605.21467",
+        "when": "May 20"
+      },
+      {
+        "rank": 5,
+        "title": "LLMs as Noisy Channels: Shannon Capacity & Scaling Laws",
+        "lab": "academia",
+        "heat": 80,
+        "tag": "scaling theory",
+        "arxiv_id": "2605.23901",
+        "url": "https://arxiv.org/abs/2605.23901",
+        "when": "May 22"
+      },
+      {
+        "rank": 6,
+        "title": "SANA-WM: Efficient Minute-Scale World Modeling",
+        "lab": "NVIDIA-style efficiency",
+        "heat": 78,
+        "tag": "world model",
+        "arxiv_id": "2605.15178",
+        "url": "https://arxiv.org/abs/2605.15178",
+        "when": "May 16"
+      },
+      {
+        "rank": 7,
+        "title": "FutureSim: Replaying World Events to Evaluate Adaptive Agents",
+        "lab": "ELLIS / Tübingen",
+        "heat": 72,
+        "tag": "agent forecasting",
+        "votes": 7,
+        "arxiv_id": "2605.15188",
+        "url": "https://arxiv.org/abs/2605.15188",
+        "when": "May 14"
+      }
+    ]
+  }
+}

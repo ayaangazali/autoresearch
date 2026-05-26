@@ -21,3 +21,14 @@ dev/
 
 # Results file
 results.tsv
+
+# paper-hunt runtime artifacts (local only)
+hunt-ui/daemon/logs/
+hunt-ui/daemon/runs/
+.playwright-mcp/
+# scratch screenshots
+graph.jpeg
+hunt-dashboard.png
+hunt-reading-list.jpeg
+trend-top.png
+trending-check.png
