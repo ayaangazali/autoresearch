@@ -14,14 +14,17 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
+import time
 from pathlib import Path
 
 # ANSI colors; degrade gracefully when stdout is not a TTY.
 _TTY = sys.stdout.isatty()
 GREEN = "\033[32m" if _TTY else ""
+RED = "\033[31m" if _TTY else ""
 DIM = "\033[2m" if _TTY else ""
 BOLD = "\033[1m" if _TTY else ""
 RESET = "\033[0m" if _TTY else ""
+CLEAR = "\033[2J\033[H" if _TTY else ""
 
 
 def load_rows(path: Path) -> list[dict[str, str]]:
@@ -46,31 +49,53 @@ def render(rows: list[dict[str, str]], top: int) -> None:
     print(DIM + "-" * 72 + RESET)
     for i, row in enumerate(ranked, 1):
         bpb = parse_bpb(row)
-        bpb_str = f"{bpb:.6f}" if bpb != float("inf") else "  crash "
-        mark = GREEN if bpb == best else ""
+        crashed = bpb == float("inf")
+        bpb_str = "  crash " if crashed else f"{bpb:.6f}"
+        color = RED if crashed else (GREEN if bpb == best else "")
         print(
-            f"{mark}{i:>3}  {bpb_str:>9}  {row.get('memory_gb', '?'):>6}  "
+            f"{color}{i:>3}  {bpb_str:>9}  {row.get('memory_gb', '?'):>6}  "
             f"{row.get('commit', '')[:10]:<10}  {row.get('description', '')}{RESET}"
         )
+
+    crashes = sum(1 for r in rows if parse_bpb(r) == float("inf"))
+    best_str = f"{best:.6f}" if best not in (None, float('inf')) else "n/a"
+    print(DIM + "-" * 72 + RESET)
+    print(f"{DIM}{len(rows)} runs · {crashes} crashed · best {RESET}{GREEN}{best_str}{RESET}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("path", nargs="?", default="results.tsv", type=Path)
     parser.add_argument("--top", type=int, default=20, help="rows to display")
+    parser.add_argument(
+        "--watch", type=float, metavar="SECONDS",
+        help="re-render every N seconds for a live view of an ongoing sweep",
+    )
     args = parser.parse_args()
 
     if not args.path.exists():
         print(f"no results file at {args.path} — run an experiment first", file=sys.stderr)
         return 1
 
-    rows = [r for r in load_rows(args.path) if r.get("commit")]
-    if not rows:
-        print("results.tsv has no experiments yet", file=sys.stderr)
-        return 1
+    def draw() -> bool:
+        rows = [r for r in load_rows(args.path) if r.get("commit")]
+        if not rows:
+            print("results.tsv has no experiments yet", file=sys.stderr)
+            return False
+        render(rows, args.top)
+        return True
 
-    render(rows, args.top)
-    return 0
+    if not args.watch:
+        return 0 if draw() else 1
+
+    try:
+        while True:
+            print(CLEAR, end="")
+            print(f"{DIM}watching {args.path} (Ctrl-C to stop){RESET}")
+            draw()
+            time.sleep(args.watch)
+    except KeyboardInterrupt:
+        return 0
 
 
 if __name__ == "__main__":
