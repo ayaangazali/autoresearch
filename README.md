@@ -79,10 +79,14 @@ Runs are sorted by `val_bpb` (lower is better); crashed runs sink to the bottom.
 ## Project structure
 
 ```
-prepare.py      — constants, data prep + runtime utilities (do not modify)
-train.py        — model, optimizer, training loop (agent modifies this)
-program.md      — agent instructions
-pyproject.toml  — dependencies
+prepare.py        — constants, data prep + runtime utilities (do not modify)
+train.py          — model, optimizer, training loop (agent modifies this)
+program.md        — agent instructions
+pyproject.toml    — dependencies
+Makefile          — common commands (make help)
+scripts/          — helper tooling (leaderboard, etc.)
+docs/             — setup and troubleshooting guides
+analysis.ipynb    — plots of experiment progress
 ```
 
 ## Design choices
