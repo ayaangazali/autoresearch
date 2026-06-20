@@ -49,6 +49,19 @@ Hi have a look at program.md and let's kick off a new experiment! let's do the s
 
 The `program.md` file is essentially a super lightweight "skill".
 
+## Monitoring experiments
+
+Each experiment appends a row to `results.tsv`. To see which runs are winning,
+print a ranked leaderboard:
+
+```bash
+make leaderboard
+# or, for a live view during an overnight sweep:
+uv run scripts/leaderboard.py --watch 30
+```
+
+Runs are sorted by `val_bpb` (lower is better); crashed runs sink to the bottom.
+
 ## Project structure
 
 ```
