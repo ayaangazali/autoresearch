@@ -77,12 +77,14 @@ def main() -> int:
         print(f"no results file at {args.path} — run an experiment first", file=sys.stderr)
         return 1
 
+    top = max(1, args.top)
+
     def draw() -> bool:
         rows = [r for r in load_rows(args.path) if r.get("commit")]
         if not rows:
             print("results.tsv has no experiments yet", file=sys.stderr)
             return False
-        render(rows, args.top)
+        render(rows, top)
         return True
 
     if not args.watch:
